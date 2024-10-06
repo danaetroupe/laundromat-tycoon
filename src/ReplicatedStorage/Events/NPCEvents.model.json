@@ -1,5 +1,5 @@
 {
-    "ClassName": "Folder",
+    "ClassName" : "Folder",
     "Children": [
         {
             "Name": "GetNPCs",

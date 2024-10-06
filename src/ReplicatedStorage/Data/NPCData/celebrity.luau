@@ -2,8 +2,8 @@
 
 return {
 	name = nil,
-	happiness = 75,
-	rarity = "uncommon",
+	happiness = 50,
+	rarity = "rare",
 	character = nil,
 	status = nil
 }
