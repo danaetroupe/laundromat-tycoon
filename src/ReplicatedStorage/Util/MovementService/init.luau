@@ -59,7 +59,10 @@ function MovementService.Move(character : Model, destination : Vector3, paramete
 		track:Play()
 	else
 		warn("Path not computed!", errorMessage)
+		return false
 	end
+
+	return true
 end
 
 return MovementService

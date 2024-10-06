@@ -1,0 +1,14 @@
+{
+    "ClassName" : "Folder",
+    "Children": [
+        {
+            "Name": "InitPlacement",
+            "ClassName": "RemoteEvent"
+        },
+        {
+            "Name": "InvokePlacement",
+            "ClassName": "RemoteEvent"
+        }
+        
+    ]
+}

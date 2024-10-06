@@ -5,7 +5,7 @@ local ServerStorage = game:GetService("ServerStorage")
 -- Modules
 --local NPCData = require(ReplicatedStorage.Data.NPCData)
 local OutfitData = require(ReplicatedStorage.Data.OutfitData)
-local MovementService = require(ReplicatedStorage.Services.MovementService)
+local MovementService = require(ReplicatedStorage.Util.MovementService)
 
 -- Constants
 local Model = ServerStorage.NPC.model
