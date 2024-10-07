@@ -3,7 +3,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
 
 -- Modules
---local NPCData = require(ReplicatedStorage.Data.NPCData)
+local NPCData = require(ReplicatedStorage.Data.NPCData)
 local OutfitData = require(ReplicatedStorage.Data.OutfitData)
 local MovementService = require(ReplicatedStorage.Util.MovementService)
 
@@ -14,7 +14,8 @@ local Model = ServerStorage.NPC.model
 local NPCService = {}
 
 -- Spawns character in world and creates if necessary
-function NPCService.SpawnCharacter(data : table, point : CFrameValue) : table
+function NPCService.SpawnNewCharacterCharacter(type : string, point : CFrameValue) : table
+    local data = NPCData.Get(type)
     local character : Model = data["character"]
     if character then
         character.Parent = workspace
@@ -46,6 +47,10 @@ function NPCService.WalkCharacter(data : table, point : Vector3)
     end
 
     MovementService.Move(character, point)
+end
+
+function NPCService.GetStatus(data : table) : string
+    return data["status"]
 end
 
 return NPCService

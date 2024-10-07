@@ -4,16 +4,15 @@ local ServerStorage = game:GetService("ServerStorage")
 
 local NPCData = require(ReplicatedStorage.Data.NPCData)
 local NPCService = require(ReplicatedStorage.Services.NPCService)
-local InteractionData = require(ReplicatedStorage.Services.InteractionService)
+local ObjectService = require(ReplicatedStorage.Services.ObjectService)
 
 -- Events
 local PlacementEvents = ServerStorage.BindableEvents.PlacementEvents
 
 local NPCharacters = {}
 
-local function routeTo(plr : Player, data : table) -- Should I move this to the service
+local function routeTo(plr : Player, data : table)
     local activeWasher = PlacementEvents.GetAvaliableWasher:Invoke(plr)
-    local complete
 
     if activeWasher then 
         local washer = activeWasher["model"]
@@ -22,8 +21,8 @@ local function routeTo(plr : Player, data : table) -- Should I move this to the 
         end
     end
 
-    if activeWasher["status"] == "Empty" then
-        InteractionData:UpdateStatus(activeWasher, "Running")
+    if NPCService.GetStatus(data) == "Empty" then
+        ObjectService.UpdateStatus(activeWasher, "Running")
         print('washer is empty!')
     else
         print('washer is full... need to reroute')
@@ -32,15 +31,14 @@ local function routeTo(plr : Player, data : table) -- Should I move this to the 
     
 end
 
-Players.PlayerAdded:Connect(function(player)
+--[[
+Players.PlayerAdded:Connect(function(player) -- test function for npc controller 
     local character = player.Character or player.CharacterAdded:Wait()
-    
-    local data = NPCData.Get("regular") -- this should be handled through the service FIX !!!!
-    data = NPCService.SpawnCharacter(data, character.HumanoidRootPart.CFrame)
+    local data = NPCService.SpawnCharacter("regular", character.HumanoidRootPart.CFrame)
     NPCharacters[player] = data
     task.wait(5)
     routeTo(player, data)
 end)
-
+]]
 -- Controllers keep track of events
 -- Services keep track of behaviors

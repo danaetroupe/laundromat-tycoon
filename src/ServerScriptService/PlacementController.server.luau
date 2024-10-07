@@ -31,7 +31,7 @@ end
 -- !! FOR TESTING PURPOSES ONLY
 local CollectionService = game:GetService("CollectionService")
 local Washers = CollectionService:GetTagged("Washer")
-local WasherData = require(ReplicatedStorage.Data.InteractableData.washer)
+local WasherData = require(ReplicatedStorage.Data.ObjectData.washer)
 
 Players.PlayerAdded:Connect(function(plr)
     Placements[plr] = {}
