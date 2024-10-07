@@ -17,6 +17,7 @@ local function Init() : nil -- Initalize service
 
             if player and not PlayerTycoons[player] then -- assign tycoon to player
                 PlayerTycoons[player] = tycoon
+                TycoonService.AssignToPlayer(tycoon, player)
                 Players.PlayerRemoving:Connect(function(plr)
                     if player == plr then
                         PlayerTycoons[player] = nil
