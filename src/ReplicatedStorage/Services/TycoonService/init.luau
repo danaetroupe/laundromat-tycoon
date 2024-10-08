@@ -3,9 +3,12 @@
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 
 local TycoonData = require(ReplicatedStorage.Data.TycoonData)
+local TycoonEvents = ReplicatedStorage.Events.TycoonEvents
 
+local isServer = RunService:IsServer()
 local TycoonService = {}
 
 function TycoonService.Init() : table
@@ -37,6 +40,18 @@ function TycoonService.AssignToPlayer(data : table, player) : nil -- Assigns tyc
             data["money"] = 0
         end
     end)
+end
+
+function TycoonService.GetBasePart(data : table) : Part -- Returns base part for tycoon
+    return data["base"]
+end 
+
+function TycoonService.GetPlayerData(player : Player) : table -- Request player data from client
+    if not isServer then
+        return TycoonEvents.GetPlayerData:InvokeServer(player)
+    else
+        error("Requesting TycoonService.GetPlayerData from server")
+    end
 end
 
 return TycoonService

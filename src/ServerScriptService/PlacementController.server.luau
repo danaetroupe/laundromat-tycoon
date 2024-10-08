@@ -12,10 +12,19 @@ local ServerEvents = ServerStorage.BindableEvents.PlacementEvents
 
 local Placements = {}
 
-ClientEvents.InitPlacement.OnServerEvent:Connect(function(player : Player, baseObject : Part) : nil
+ClientEvents.InitPlacement.OnServerInvoke = function(player : Player, baseObject : Part) : nil
     -- Run this when player steps on canvas to associate player with base object
     Placements[player]["base"] = baseObject
     Placements[player]["baseObjects"] = {}
+    return PlacementService.Init(baseObject)
+end
+
+-- Places object on server side
+ClientEvents.InvokePlacement.OnServerEvent:Connect(function(player : Player, model : Model, cf : CFrame) : nil
+    if Placements[player] then
+        table.insert(Placements[player]["baseObjects"], model)
+        PlacementService.Place(model, cf, Placements[player]["base"])
+    end
 end)
 
 -- Returns first avaliable washer in list

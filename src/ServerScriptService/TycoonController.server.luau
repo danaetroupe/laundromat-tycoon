@@ -3,6 +3,8 @@ local Players = game:GetService("Players")
 
 local TycoonService = require(ReplicatedStorage.Services.TycoonService)
 
+local TycoonEvents = ReplicatedStorage.Events.TycoonEvents
+
 local Tycoons = {}
 local PlayerTycoons = {}
 
@@ -11,7 +13,6 @@ local function Init() : nil -- Initalize service
     for _, tycoon in Tycoons do
         local claimPart = TycoonService.GetClaim(tycoon)
         claimPart.Touched:Connect(function(touch)
-            print('touched')
             local character = touch.Parent
             local player = Players:GetPlayerFromCharacter(character)
 
@@ -29,3 +30,7 @@ local function Init() : nil -- Initalize service
 end
 
 Init()
+
+TycoonEvents.GetPlayerData.OnServerInvoke = function(player : Player)
+    return PlayerTycoons[player]
+end

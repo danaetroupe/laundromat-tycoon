@@ -3,7 +3,7 @@
     "Children": [
         {
             "Name": "InitPlacement",
-            "ClassName": "RemoteEvent"
+            "ClassName": "RemoteFunction"
         },
         {
             "Name": "InvokePlacement",

@@ -9,6 +9,7 @@ return {
     weeklyUses = 0,
     model = nil,
     cycleTime = 30,
+    coinCount = 0,
     maxCoinCount = 500,
     timeRemaining = 0
 }

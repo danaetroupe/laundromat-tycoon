@@ -13,16 +13,26 @@ local GRID_UNIT = 1
 
 local PlacementService = {}
 
-function PlacementService.Init(base : Part)
-    local objectsFolder = Instance.new("Folder")
-    objectsFolder.Name = "BaseObjects"
-    objectsFolder.Parent = base
+function PlacementService.Init(basePart : Part)
+    if isServer then
+        local objectsFolder = Instance.new("Folder")
+        objectsFolder.Name = "BaseObjects"
+        objectsFolder.Parent = basePart
+    else
+        return PlacementEvents.InitPlacement:InvokeServer(basePart)
+    end
+    return true
 end
 
 -- Place Object In World
-function PlacementService.Place(model : Model, cf : CFrame) : nil
-    local clone = model:Clone()
-    clone.PrimaryPart.CFrame = cf
+function PlacementService.Place(model : Model, cf : CFrame, basePart : Part) : nil
+    if isServer then
+        model.Parent = basePart.BaseObjects
+        model:PivotTo(cf)
+    else
+        
+        PlacementEvents.InvokePlacement:FireServer(model, cf)
+    end
 end
 
 -- Calculate placement surface
@@ -44,6 +54,7 @@ end
 -- Calculates base size in world space for placement
 function PlacementService._CalcBase(base : Part, surface : Enum.NormalId)
     local canvasSize = base.Size
+    surface = surface or Enum.NormalId.Top
 
     local up = Vector3.new(0, 1, 0)
     local back = -Vector3.FromNormalId(surface)
@@ -66,8 +77,7 @@ function PlacementService._CalcBase(base : Part, surface : Enum.NormalId)
 end
 
 -- Calculates the CFrame of the Object
-function PlacementService._CalcPlacementCFrame(base : Part, data : table, position : Vector3, rotation : Vector3) : CFrameValue
-	local model = data["model"]
+function PlacementService.CalcPlacementCFrame(base : Part, model : Model, position : Vector3, rotation : Vector3) : CFrameValue
     -- use other method to get info about the surface
 	local cf, size = PlacementService._CalcBase(base)
 
@@ -95,7 +105,7 @@ function PlacementService._CalcPlacementCFrame(base : Part, data : table, positi
 end
  -- !! still need to implement way to pass in surface mouse is pointing at 
 
-function PlacementService._IsColliding(model : Model) : boolean
+function PlacementService.IsColliding(model : Model) : boolean
 	local touching = model.PrimaryPart:GetTouchingParts()
 	-- if intersecting with something that isn't part of the model then can't place
 	for i = 1, #touching do
