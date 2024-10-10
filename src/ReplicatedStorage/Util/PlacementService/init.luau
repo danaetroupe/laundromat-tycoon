@@ -14,14 +14,9 @@ local GRID_UNIT = 1
 local PlacementService = {}
 
 function PlacementService.Init(basePart : Part)
-    if isServer then
-        local objectsFolder = Instance.new("Folder")
-        objectsFolder.Name = "BaseObjects"
-        objectsFolder.Parent = basePart
-    else
-        return PlacementEvents.InitPlacement:InvokeServer(basePart)
-    end
-    return true
+    local objectsFolder = Instance.new("Folder")
+    objectsFolder.Name = "BaseObjects"
+    objectsFolder.Parent = basePart
 end
 
 -- Place Object In World
@@ -30,7 +25,6 @@ function PlacementService.Place(model : Model, cf : CFrame, basePart : Part) : n
         model.Parent = basePart.BaseObjects
         model:PivotTo(cf)
     else
-        
         PlacementEvents.InvokePlacement:FireServer(model, cf)
     end
 end

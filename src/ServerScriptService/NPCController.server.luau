@@ -7,10 +7,10 @@ local NPCService = require(ReplicatedStorage.Services.NPCService)
 local ObjectService = require(ReplicatedStorage.Services.ObjectService)
 
 -- Events
-local PlacementEvents = ServerStorage.BindableEvents.PlacementEvents
 
 local NPCharacters = {}
 
+--[[
 local function routeTo(plr : Player, data : table)
     local activeWasher = PlacementEvents.GetAvaliableWasher:Invoke(plr)
 
@@ -28,10 +28,9 @@ local function routeTo(plr : Player, data : table)
         print('washer is full... need to reroute')
         routeTo(data)
     end
-    
 end
 
---[[
+
 Players.PlayerAdded:Connect(function(player) -- test function for npc controller 
     local character = player.Character or player.CharacterAdded:Wait()
     local data = NPCService.SpawnCharacter("regular", character.HumanoidRootPart.CFrame)

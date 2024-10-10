@@ -1,4 +1,4 @@
-local TycoonData = {}
+local PlayerData = {}
 local _data = {}
 
 local function _init()
@@ -9,17 +9,17 @@ local function _init()
 end
 
 -- Returns module table
-function TycoonData.Get(name : string) : any
-	return _data[name]
+function PlayerData.Get() : any
+	return _data["player"]
 end
 
 -- Returns property of a specific tycoon type
-function TycoonData.GetProperty(name: string, property: string) : any
+function PlayerData.GetProperty(name: string, property: string) : any
 	return _data[name][property]
 end
 
 -- Returns property list of a specific tycoon type
-function TycoonData.GetProperties(name: string, properties: {string}) : {[string] : any}
+function PlayerData.GetProperties(name: string, properties: {string}) : {[string] : any}
 	local out = {}
 	for _, key in properties do
 		out[key] = _data[name][key]
@@ -28,4 +28,4 @@ function TycoonData.GetProperties(name: string, properties: {string}) : {[string
 end
 
 _init()
-return TycoonData
+return PlayerData

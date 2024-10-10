@@ -6,40 +6,49 @@ local ContextActionService = game:GetService("ContextActionService")
 local PlayerService = require(ReplicatedStorage.Services.PlayerService)
 local PlacementService = require(ReplicatedStorage.Util.PlacementService)
 
-local PlayerEvents = ReplicatedStorage.Events.PlayerEvents
---local PlacementEvents = ReplicatedStorage.Events.PlacementEvents
-
 local LocalPlayer = Players.LocalPlayer
-
-local TESTOBJECT : Model = ReplicatedStorage.Assets.Objects.washingmachine --[[
-    change this to whichever asset you want to test
-    this should get passed in as clone model in player inventory 
-    ]]
 local Mouse = LocalPlayer:GetMouse()
-
+local selectObj : Model = nil
 local rotation : number = 0
+local selectActive : boolean = false
 local placeActive : boolean = false
 local currModel : Model = nil
 local basePart : Part = nil
+local orginParent = nil
 
-local ROTATE = "Rotate"
+local SELECT = "Select"
 local QUIT = "Quit"
 local PLACE = "Place"
 
 local function handleInput(name, userInputState, input)
     if userInputState == Enum.UserInputState.Begin then
-        if name == ROTATE then
-            rotation = rotation + math.pi/2
+        if name == SELECT then
+            selectObj = Mouse.Target.Parent
+            if PlayerService.IsBaseObject(LocalPlayer, selectObj) then
+                orginParent = selectObj.Parent
+                selectObj.Parent = ReplicatedStorage.Temp
+                currModel = selectObj:Clone()
+                Mouse.TargetFilter = basePart.BaseObjects
+                currModel.Parent = Mouse.TargetFilter
+
+                selectActive = false
+                placeActive = true
+
+                ContextActionService:UnbindAction(SELECT)
+                ContextActionService:BindAction(PLACE, handleInput, false, Enum.UserInputType.MouseButton1)
+            end
         elseif name == QUIT then
+            if placeActive then
+                selectObj.Parent = orginParent
+            end
             currModel:Destroy()
             rotation = 0
-            placeActive = false
             ContextActionService:UnbindAction(PLACE)
             Mouse.TargetFilter = nil
         elseif name == PLACE then
-            print('Mouse clicked')
             if not PlacementService.IsColliding(currModel) then
-                PlacementService.Place(TESTOBJECT, PlacementService.CalcPlacementCFrame(basePart, currModel, Mouse.Hit.p, rotation))
+                placeActive = false
+                PlacementService.Place(selectObj, PlacementService.CalcPlacementCFrame(basePart, currModel, Mouse.Hit.p, rotation))
                 handleInput(QUIT, Enum.UserInputState.Begin, nil)
             end
         end
@@ -48,7 +57,6 @@ end
 
 
 -- Bind actions 
-ContextActionService:BindAction(ROTATE, handleInput, true, Enum.KeyCode.R)
 ContextActionService:BindAction(QUIT, handleInput, true, Enum.KeyCode.Q)
 
 RunService.RenderStepped:Connect(function(dt)
@@ -60,12 +68,8 @@ end)
 
 return function(button : TextButton) -- Gives functionality to "Place" dev button
     button.Activated:Connect(function()
+        selectActive = true
         basePart = PlayerService.GetBasePartFromPlayer(LocalPlayer)
-        Mouse.TargetFilter = basePart.BaseObjects
-        placeActive = true
-
-        ContextActionService:BindAction(PLACE, handleInput, false, Enum.UserInputType.MouseButton1)
-        currModel = TESTOBJECT:Clone()
-        currModel.Parent = Mouse.TargetFilter   
+        ContextActionService:BindAction(SELECT, handleInput, false, Enum.UserInputType.MouseButton1)
     end)
 end

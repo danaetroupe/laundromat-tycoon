@@ -11,5 +11,8 @@ return {
     cycleTime = 30,
     coinCount = 0,
     maxCoinCount = 500,
-    timeRemaining = 0
+    timeRemaining = 0,
+    states = {
+        closed = "dryer"
+    }
 }

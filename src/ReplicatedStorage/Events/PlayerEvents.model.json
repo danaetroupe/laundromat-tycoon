@@ -1,0 +1,17 @@
+{
+    "ClassName" : "Folder",
+    "Children": [
+        {
+            "Name": "GetPlayerData",
+            "ClassName": "RemoteFunction"
+        },
+        {
+            "Name": "GetServerPlayerData",
+            "ClassName": "BindableFunction"
+        },
+        {
+            "Name": "ChangeActive",
+            "ClassName": "RemoteFunction"
+        }
+    ]
+}

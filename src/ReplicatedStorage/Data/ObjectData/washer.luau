@@ -1,3 +1,5 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
 return {
     name = "Washing Machine",
     currentLevel = 1,
@@ -8,9 +10,12 @@ return {
     waterCharge = 25,
     electricCharge = 10,
     weeklyUses = 0,
-    model = nil,
     cycleTime = 30,
     coinCount = 0,
     maxCoinCount = 500, 
-    timeRemaining = 0
+    timeRemaining = 0,
+    model = "washingmachine",
+    states = {
+        open = "washingmachine_open"
+    }
 }
