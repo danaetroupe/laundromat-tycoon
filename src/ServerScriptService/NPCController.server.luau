@@ -42,20 +42,15 @@ PlayerEvents.ActiveToggled.Event:Connect(function(player : Player, active : bool
     end
 
     while PlayerData[player]["active"] do -- increase step by 1 while player is active
+        if PlayerData[player]["step"] % 30 == 0 then
+            table.insert(NPCCharacters[player], NPCService.SpawnNewCharacter("regular", PlayerData[player]["route"].CFrame))
+        end
         PlayerData[player]["step"] += 1
         task.wait(1)
     end
 end)
 
-RunService.Heartbeat:Connect(function()
-    for _, player in PlayerData do
-        if player.active then
-            if player.step % 30 == 0 then 
-                table.insert(NPCCharacters[player], NPCService.SpawnNewCharacter("regular", player.route.Position))
-            end
-        end
-    end 
-end) --[[ !! TODO: basically... what i need to do here is NOT run every heartbeat
+--[[ !! TODO: basically... what i need to do here is NOT run every heartbeat
 but instead do something with task.wait() or coroutines or SOMETHING so that it checks every second.
 ]]
 
