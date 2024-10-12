@@ -55,18 +55,15 @@ function PlayerService.IsBaseObject(player : Player, obj : Model) : boolean
     return if table.find(baseObjects, obj) then true else false
 end
 
-local function toggle(data)
-    data["active"] = not data["active"]
-    return data["active"]
-end
-
 -- Toggles active value of playerdata
 function PlayerService.ToggleActive(data : table) : boolean
     if not isServer then
         return PlayerEvents.ChangeActive:InvokeServer()
     else
         data["active"] = not data["active"]
+        PlayerEvents.ActiveToggled:Fire(data["player"], data["active"])
         return data["active"]
+
     end
 end
 

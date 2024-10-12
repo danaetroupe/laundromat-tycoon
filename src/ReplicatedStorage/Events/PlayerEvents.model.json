@@ -12,6 +12,10 @@
         {
             "Name": "ChangeActive",
             "ClassName": "RemoteFunction"
+        },
+        {
+            "Name": "ActiveToggled",
+            "ClassName": "BindableEvent"
         }
     ]
 }

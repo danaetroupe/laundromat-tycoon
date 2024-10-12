@@ -14,7 +14,7 @@ local Model = ServerStorage.NPC.model
 local NPCService = {}
 
 -- Spawns character in world and creates if necessary
-function NPCService.SpawnNewCharacterCharacter(type : string, point : CFrameValue) : table
+function NPCService.SpawnNewCharacter(type : string, point : CFrameValue) : table
     local data = NPCData.Get(type)
     local character : Model = data["character"]
     if character then
@@ -51,6 +51,12 @@ end
 
 function NPCService.GetStatus(data : table) : string
     return data["status"]
+end
+
+function NPCService.DestroyAll(npcs : table) : nil
+    for _, npc in npcs do
+        npc["character"]:Destroy()
+    end
 end
 
 return NPCService

@@ -7,8 +7,20 @@ local NPCService = require(ReplicatedStorage.Services.NPCService)
 local ObjectService = require(ReplicatedStorage.Services.ObjectService)
 
 -- Events
+local PlayerEvents = ReplicatedStorage.Events.PlayerEvents
 
-local NPCharacters = {}
+local NPCCharacters = {} -- player: {npc data}
+local PlayerData = {}
+
+-- Receive information that player's active state has changed
+PlayerEvents.ActiveToggled:Connect(function(player : Player, active : boolean)
+    PlayerData[player]["active"] = active
+    if active and NPCCharacters[player] then
+        NPCService.DestroyAll(NPCCharacters[player])
+        NPCCharacters[player] = {} 
+    end
+end)
+
 
 --[[
 local function routeTo(plr : Player, data : table)
