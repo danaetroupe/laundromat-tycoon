@@ -1,25 +1,63 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
+local RunService = game:GetService("RunService")
 
 local NPCData = require(ReplicatedStorage.Data.NPCData)
 local NPCService = require(ReplicatedStorage.Services.NPCService)
 local ObjectService = require(ReplicatedStorage.Services.ObjectService)
+local PlayerService = require(ReplicatedStorage.Services.PlayerService)
 
 -- Events
 local PlayerEvents = ReplicatedStorage.Events.PlayerEvents
 
 local NPCCharacters = {} -- player: {npc data}
 local PlayerData = {}
+local Settings = {}
+
+-- Init settings
+local function Init() : nil
+    Settings.spawnFrequency = NPCService.GetSpawnFrequency()
+end
+
+Init() -- Call init immediately
 
 -- Receive information that player's active state has changed
-PlayerEvents.ActiveToggled:Connect(function(player : Player, active : boolean)
+PlayerEvents.ActiveToggled.Event:Connect(function(player : Player, active : boolean)
+    if not PlayerData[player] then
+        PlayerData[player] = {}
+    end
+
+    if not NPCCharacters[player] then
+        NPCCharacters[player]  = {}
+    end
+
     PlayerData[player]["active"] = active
-    if active and NPCCharacters[player] then
+    if not active and NPCCharacters[player] then
         NPCService.DestroyAll(NPCCharacters[player])
         NPCCharacters[player] = {} 
+    elseif active then
+        PlayerData[player]["step"] = 0
+        PlayerData[player]["route"] = PlayerService.GetRoutePoint(player)
+    end
+
+    while PlayerData[player]["active"] do -- increase step by 1 while player is active
+        PlayerData[player]["step"] += 1
+        task.wait(1)
     end
 end)
+
+RunService.Heartbeat:Connect(function()
+    for _, player in PlayerData do
+        if player.active then
+            if player.step % 30 == 0 then 
+                table.insert(NPCCharacters[player], NPCService.SpawnNewCharacter("regular", player.route.Position))
+            end
+        end
+    end 
+end) --[[ !! TODO: basically... what i need to do here is NOT run every heartbeat
+but instead do something with task.wait() or coroutines or SOMETHING so that it checks every second.
+]]
 
 
 --[[

@@ -4,5 +4,5 @@ return {
 	player = nil,
 	tycoon = nil,
 	baseObjects = {},
-	active = false
+	active = true
 }

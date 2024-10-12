@@ -24,6 +24,7 @@ function PlayerService.AssignToPlayer(player : Player, tycoon : Model) : nil
     local data = table.clone(PlayerData.Get())
     data["player"] = player
     data["tycoon"] = tycoon
+    PlayerEvents.ActiveToggled:Fire(data["player"], data["active"])
 
     return data
 end

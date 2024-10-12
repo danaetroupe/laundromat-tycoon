@@ -59,4 +59,8 @@ function NPCService.DestroyAll(npcs : table) : nil
     end
 end
 
+function NPCService.GetSpawnFrequency() : number
+    return NPCData.GetProperty("settings", "spawnFrequency")
+end
+
 return NPCService
