@@ -15,7 +15,7 @@ local NPCService = {}
 
 -- Spawns character in world and creates if necessary
 function NPCService.SpawnNewCharacter(type : string, point : CFrameValue) : table
-    local data = NPCData.Get(type)
+    local data = table.clone(NPCData.Get(type))
     local character : Model = data["character"]
     if character then
         character.Parent = workspace
@@ -39,14 +39,15 @@ function NPCService.SpawnNewCharacter(type : string, point : CFrameValue) : tabl
 end
 
 -- Walks character to point
-function NPCService.WalkCharacter(data : table, point : Vector3)
+function NPCService.WalkCharacter(data : table, point : Vector3, lookVector : Vector3)
     local character : Model = data["character"]
     if not character then
         error("Character not given.")
         return
     end
 
-    MovementService.Move(character, point)
+    local complete = MovementService.Move(character, point)
+    character:PivotTo(CFrame.lookAt(character.PrimaryPart.CFrame.Position, lookVector))
 end
 
 function NPCService.GetStatus(data : table) : string
@@ -61,6 +62,15 @@ end
 
 function NPCService.GetSpawnFrequency() : number
     return NPCData.GetProperty("settings", "spawnFrequency")
+end
+
+function NPCService.GetHumanoid(data) : Humanoid
+    return data["model"].Humanoid
+end
+
+function NPCService.FaceForwards(npc : table, part : Part)
+    local character : Model = npc["character"]
+    character:PivotTo(CFrame.lookAt(character.PrimaryPart.CFrame.Position, part.CFrame.LookVector))
 end
 
 return NPCService

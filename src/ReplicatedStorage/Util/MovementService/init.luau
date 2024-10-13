@@ -44,7 +44,7 @@ function MovementService.Move(character : Model, destination : Vector3, paramete
 				if reached and nextWaypointIndex < #waypoints then
 					-- Increase waypoint index and move to next waypoint
 					nextWaypointIndex += 1
-					humanoid:MoveTo(waypoints[nextWaypointIndex].Position)
+					return humanoid:MoveTo(waypoints[nextWaypointIndex].Position)
 				else
 					reachedConnection:Disconnect()
 					blockedConnection:Disconnect()

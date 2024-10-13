@@ -38,12 +38,20 @@ PlayerEvents.ActiveToggled.Event:Connect(function(player : Player, active : bool
         NPCCharacters[player] = {} 
     elseif active then
         PlayerData[player]["step"] = 0
-        PlayerData[player]["route"] = PlayerService.GetRoutePoint(player)
+        PlayerData[player]["queue"] = {}
+        PlayerData[player]["start"] = PlayerService.GetStartPoint(player)
+        PlayerData[player]["end"] = PlayerService.GetEndPoint(player)
     end
 
     while PlayerData[player]["active"] do -- increase step by 1 while player is active
-        if PlayerData[player]["step"] % 30 == 0 then
-            table.insert(NPCCharacters[player], NPCService.SpawnNewCharacter("regular", PlayerData[player]["route"].CFrame))
+        if PlayerData[player]["step"] % 10 == 0 then
+            local npc = NPCService.SpawnNewCharacter("regular", PlayerData[player]["start"].CFrame)
+            table.insert(NPCCharacters[player], npc)
+        end
+        for i, attendant in NPCCharacters[player] do -- Move all humanoids up in the queue
+            NPCService.WalkCharacter(attendant,
+                (PlayerData[player]["end"].Position + Vector3.new(1, 0, 0) * 2 * (i-1)),
+                PlayerData[player]["end"].CFrame.LookVector)
         end
         PlayerData[player]["step"] += 1
         task.wait(1)

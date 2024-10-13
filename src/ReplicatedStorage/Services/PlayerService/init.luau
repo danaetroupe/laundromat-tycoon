@@ -69,8 +69,12 @@ function PlayerService.ToggleActive(data : table) : boolean
 end
 
 -- Gets entry point of tycoon for routing purposes
-function PlayerService.GetRoutePoint(player : Player) : Part
+function PlayerService.GetStartPoint(player : Player) : Part
     return PlayerService.GetPlayerData(player)["tycoon"].Entry
+end
+
+function PlayerService.GetEndPoint(player : Player) : Part
+    return PlayerService.GetPlayerData(player)["tycoon"].Exit
 end
 
 
