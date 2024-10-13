@@ -1,4 +1,7 @@
 local PathfindingService = game:GetService("PathfindingService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local MovementEvents = ReplicatedStorage.Events.MovementEvents
 
 local walkAnim = Instance.new("Animation")
 walkAnim.AnimationId = "rbxassetid://507777826"
@@ -44,11 +47,12 @@ function MovementService.Move(character : Model, destination : Vector3, paramete
 				if reached and nextWaypointIndex < #waypoints then
 					-- Increase waypoint index and move to next waypoint
 					nextWaypointIndex += 1
-					return humanoid:MoveTo(waypoints[nextWaypointIndex].Position)
+					humanoid:MoveTo(waypoints[nextWaypointIndex].Position)
 				else
 					reachedConnection:Disconnect()
 					blockedConnection:Disconnect()
 					track:Stop()
+					MovementEvents.MovementComplete:Fire(character)
 				end
 			end)
 		end
@@ -59,10 +63,9 @@ function MovementService.Move(character : Model, destination : Vector3, paramete
 		track:Play()
 	else
 		warn("Path not computed!", errorMessage)
-		return false
 	end
 
-	return true
+	return reachedConnection
 end
 
 return MovementService

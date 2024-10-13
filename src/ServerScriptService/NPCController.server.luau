@@ -22,6 +22,13 @@ end
 
 Init() -- Call init immediately
 
+local function updateLine(player) -- moves up line if event happens -- !! TODO: connect to event
+    for i, attendant in NPCCharacters[player] do -- Move all humanoids up in the queue
+        local pos = PlayerData[player]["end"].Position + Vector3.new(1, 0, 0) * 2 * (i-1)
+        NPCService.WalkCharacter(attendant, pos, PlayerData[player]["end"].CFrame.LookVector)
+    end
+end
+
 -- Receive information that player's active state has changed
 PlayerEvents.ActiveToggled.Event:Connect(function(player : Player, active : boolean)
     if not PlayerData[player] then
@@ -47,11 +54,8 @@ PlayerEvents.ActiveToggled.Event:Connect(function(player : Player, active : bool
         if PlayerData[player]["step"] % 10 == 0 then
             local npc = NPCService.SpawnNewCharacter("regular", PlayerData[player]["start"].CFrame)
             table.insert(NPCCharacters[player], npc)
-        end
-        for i, attendant in NPCCharacters[player] do -- Move all humanoids up in the queue
-            NPCService.WalkCharacter(attendant,
-                (PlayerData[player]["end"].Position + Vector3.new(1, 0, 0) * 2 * (i-1)),
-                PlayerData[player]["end"].CFrame.LookVector)
+            local pos = PlayerData[player]["end"].Position + Vector3.new(1, 0, 0) * 2 * (#NPCCharacters[player]-1)
+            NPCService.WalkCharacter(npc, pos, PlayerData[player]["end"].Rotation)
         end
         PlayerData[player]["step"] += 1
         task.wait(1)

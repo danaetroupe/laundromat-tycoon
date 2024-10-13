@@ -7,6 +7,9 @@ local NPCData = require(ReplicatedStorage.Data.NPCData)
 local OutfitData = require(ReplicatedStorage.Data.OutfitData)
 local MovementService = require(ReplicatedStorage.Util.MovementService)
 
+-- Events
+local MovementEvents = ReplicatedStorage.Events.MovementEvents
+
 -- Constants
 local Model = ServerStorage.NPC.model
 
@@ -39,15 +42,23 @@ function NPCService.SpawnNewCharacter(type : string, point : CFrameValue) : tabl
 end
 
 -- Walks character to point
-function NPCService.WalkCharacter(data : table, point : Vector3, lookVector : Vector3)
+function NPCService.WalkCharacter(data : table, point : Vector3, rotation : Vector3)
     local character : Model = data["character"]
     if not character then
         error("Character not given.")
         return
     end
 
-    local complete = MovementService.Move(character, point)
-    character:PivotTo(CFrame.lookAt(character.PrimaryPart.CFrame.Position, lookVector))
+    MovementService.Move(character, point) -- run movement code
+
+    local connect -- connection signal
+    connect = MovementEvents.MovementComplete.Event:Connect(function(char)
+        if char == character then
+            character.PrimaryPart.Rotation = rotation
+            connect:Disconnect()
+        end
+    end)
+    
 end
 
 function NPCService.GetStatus(data : table) : string
