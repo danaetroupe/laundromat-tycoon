@@ -29,5 +29,13 @@ function ObjectData.GetProperties(name: string, properties: {string}) : {[string
 	return out
 end
 
+function ObjectData.GetObjectNames()
+	local names = {}
+	for _, module in script:GetChildren() do
+		table.insert(names, module.Name)
+	end
+	return names
+end
+
 _init()
 return ObjectData

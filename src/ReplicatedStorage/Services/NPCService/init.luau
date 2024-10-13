@@ -17,7 +17,7 @@ local Model = ServerStorage.NPC.model
 local NPCService = {}
 
 -- Spawns character in world and creates if necessary
-function NPCService.SpawnNewCharacter(type : string, point : CFrameValue) : table
+function NPCService.SpawnNewCharacter(player : Player, type : string, point : CFrameValue) : table
     local data = table.clone(NPCData.Get(type))
     local character : Model = data["character"]
     if character then
@@ -38,6 +38,7 @@ function NPCService.SpawnNewCharacter(type : string, point : CFrameValue) : tabl
 
     character.HumanoidRootPart.CFrame = point -- Set to point
     data["character"] = character
+    data["player"] = player 
     return data
 end
 
@@ -82,6 +83,11 @@ end
 function NPCService.FaceForwards(npc : table, part : Part)
     local character : Model = npc["character"]
     character:PivotTo(CFrame.lookAt(character.PrimaryPart.CFrame.Position, part.CFrame.LookVector))
+end
+
+-- Give NPC a proximity prompt
+function NPCService.GivePrompt(npc)
+    local prompt = Instance.new("ProximityPrompt")
 end
 
 return NPCService

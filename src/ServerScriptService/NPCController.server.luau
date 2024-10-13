@@ -52,7 +52,7 @@ PlayerEvents.ActiveToggled.Event:Connect(function(player : Player, active : bool
 
     while PlayerData[player]["active"] do -- increase step by 1 while player is active
         if PlayerData[player]["step"] % 10 == 0 then
-            local npc = NPCService.SpawnNewCharacter("regular", PlayerData[player]["start"].CFrame)
+            local npc = NPCService.SpawnNewCharacter(player, "regular", PlayerData[player]["start"].CFrame)
             table.insert(NPCCharacters[player], npc)
             local pos = PlayerData[player]["end"].Position + Vector3.new(1, 0, 0) * 2 * (#NPCCharacters[player]-1)
             NPCService.WalkCharacter(npc, pos, PlayerData[player]["end"].Rotation)

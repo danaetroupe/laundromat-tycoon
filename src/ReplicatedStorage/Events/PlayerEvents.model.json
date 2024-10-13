@@ -16,6 +16,10 @@
         {
             "Name": "ActiveToggled",
             "ClassName": "BindableEvent"
+        },
+        {
+            "Name": "InitTycoon",
+            "ClassName": "RemoteEvent"
         }
     ]
 }

@@ -1,3 +1,4 @@
 return {
-    name = "Chair"
+    name = "Chair",
+    model = "chair"
 }

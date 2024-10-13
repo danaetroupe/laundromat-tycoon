@@ -26,6 +26,17 @@ function PlayerService.AssignToPlayer(player : Player, tycoon : Model) : nil
     data["tycoon"] = tycoon
     PlayerEvents.ActiveToggled:Fire(data["player"], data["active"])
 
+    local folder = Instance.new("Folder") -- create folder to store temp assets
+    folder.Name = player.Name
+    folder.Parent = ReplicatedStorage.Temp
+    Players.PlayerRemoving:Connect(function(plr) -- set to destroy folder when leave
+        if player == plr then
+            folder:Destroy()
+        end
+    end)
+    data["temp"] = folder
+    
+    PlayerEvents.InitTycoon:FireClient(player, data)
     return data
 end
 
@@ -77,5 +88,9 @@ function PlayerService.GetEndPoint(player : Player) : Part
     return PlayerService.GetPlayerData(player)["tycoon"].Exit
 end
 
+-- Get temp folder for storage
+function PlayerService.GetTempFolder(player : Player) : Folder
+    return PlayerService.GetPlayerData(player)["temp"]
+end
 
 return PlayerService

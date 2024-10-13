@@ -14,8 +14,5 @@ return {
     coinCount = 0,
     maxCoinCount = 500, 
     timeRemaining = 0,
-    model = "washingmachine",
-    states = {
-        open = "washingmachine_open"
-    }
+    model = "washingmachine"
 }

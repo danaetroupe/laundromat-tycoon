@@ -5,16 +5,14 @@ local ContextActionService = game:GetService("ContextActionService")
 
 local PlayerService = require(ReplicatedStorage.Services.PlayerService)
 local PlacementService = require(ReplicatedStorage.Util.PlacementService)
+local ObjectService = require(ReplicatedStorage.Services.ObjectService)
 
 local PlayerEvents = ReplicatedStorage.Events.PlayerEvents
 --local PlacementEvents = ReplicatedStorage.Events.PlacementEvents
 
 local LocalPlayer = Players.LocalPlayer
 
-local TESTOBJECT : Model = ReplicatedStorage.Assets.Objects.washingmachine --[[
-    change this to whichever asset you want to test
-    this should get passed in as clone model in player inventory 
-    ]]
+local Object : Model = nil
 local Mouse = LocalPlayer:GetMouse()
 
 local rotation : number = 0
@@ -37,9 +35,8 @@ local function handleInput(name, userInputState, input)
             ContextActionService:UnbindAction(PLACE)
             Mouse.TargetFilter = nil
         elseif name == PLACE then
-            print('Mouse clicked')
             if not PlacementService.IsColliding(currModel) then
-                PlacementService.Place(TESTOBJECT, PlacementService.CalcPlacementCFrame(basePart, currModel, Mouse.Hit.p, rotation))
+                PlacementService.Place(Object, PlacementService.CalcPlacementCFrame(basePart, currModel, Mouse.Hit.p, rotation))
                 handleInput(QUIT, Enum.UserInputState.Begin, nil)
             end
         end
@@ -58,14 +55,15 @@ RunService.RenderStepped:Connect(function(dt)
     end
 end)
 
-return function(button : TextButton, object : data) -- Gives functionality to "Place" dev button
+return function(button : TextButton, object : table) -- Gives functionality to "Place" dev button
     button.Activated:Connect(function()
         basePart = PlayerService.GetBasePartFromPlayer(LocalPlayer)
         Mouse.TargetFilter = basePart.BaseObjects
         placeActive = true
 
         ContextActionService:BindAction(PLACE, handleInput, false, Enum.UserInputType.MouseButton1)
-        currModel = TESTOBJECT:Clone()
-        currModel.Parent = Mouse.TargetFilter   
+        Object = ObjectService.GetModel(object)
+        currModel = Object:Clone()
+        currModel.Parent = Mouse.TargetFilter
     end)
 end

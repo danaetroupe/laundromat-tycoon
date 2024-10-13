@@ -5,5 +5,6 @@ return {
 	happiness = 100,
 	rarity = "common",
 	character = nil,
-	status = nil
+	status = nil,
+	player = nil
 }

@@ -7,12 +7,9 @@ return {
     profit = 50,
     electricCharge = 10,
     weeklyUses = 0,
-    model = nil,
+    model = "dryer",
     cycleTime = 30,
     coinCount = 0,
     maxCoinCount = 500,
     timeRemaining = 0,
-    states = {
-        closed = "dryer"
-    }
 }

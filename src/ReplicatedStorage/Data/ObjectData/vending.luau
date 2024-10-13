@@ -1,4 +1,5 @@
 return
 {
-    name = "Vending Machine"
+    name = "Vending Machine",
+    model = "vending"
 }
