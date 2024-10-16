@@ -4,6 +4,10 @@
         {
             "Name": "GetNPCs",
             "ClassName": "RemoteEvent"
+        },
+        {
+            "Name": "UpdateLine",
+            "ClassName": "BindableEvent"
         }
         
     ]

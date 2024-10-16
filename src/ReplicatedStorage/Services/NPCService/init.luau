@@ -6,9 +6,12 @@ local ServerStorage = game:GetService("ServerStorage")
 local NPCData = require(ReplicatedStorage.Data.NPCData)
 local OutfitData = require(ReplicatedStorage.Data.OutfitData)
 local MovementService = require(ReplicatedStorage.Util.MovementService)
+local ToolService = require(ReplicatedStorage.Services.ToolService)
+local PlayerService = require(ReplicatedStorage.Services.PlayerService)
 
 -- Events
 local MovementEvents = ReplicatedStorage.Events.MovementEvents
+local NPCEvents = ReplicatedStorage.Events.NPCEvents
 
 -- Constants
 local Model = ServerStorage.NPC.model
@@ -21,10 +24,10 @@ function NPCService.SpawnNewCharacter(player : Player, type : string, point : CF
     local data = table.clone(NPCData.Get(type))
     local character : Model = data["character"]
     if character then
-        character.Parent = workspace
+        PlayerService.SpawnNPC(player, character)
     else
         character = Model:Clone() -- Create new character
-        character.Parent = workspace 
+        PlayerService.SpawnNPC(player, character)
 
         local humanoid = character.Humanoid or character:WaitForChild("Humanoid")
         local humDesc = humanoid:GetAppliedDescription()
@@ -88,6 +91,19 @@ end
 -- Give NPC a proximity prompt
 function NPCService.GivePrompt(npc)
     local prompt = Instance.new("ProximityPrompt")
+    prompt.Parent = npc.character
+    prompt.Triggered:Connect(function(player)
+        if player == npc["player"] then
+            local tool = ToolService.GiveTool(player, "laundrybasket")
+            local success = PlayerService.AssignKey(player, tool)
+            if success then 
+                PlayerService.MoveToTemp(player, npc.character)
+                NPCEvents.UpdateLine:Fire(player)
+            else
+                ToolService.Destroy(tool)
+            end
+        end
+    end)
 end
 
 return NPCService

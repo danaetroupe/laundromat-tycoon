@@ -1,3 +1,5 @@
+local ReplicatedFirst = game:GetService("ReplicatedFirst")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local ReplicateOnServer = script.Events.ReplicateOnServer
@@ -22,5 +24,19 @@ if isServer then
     end
 end
 
+function ModelService.GetModelFromStorage(name : string, path : string) : Tool
+    local model = nil
+    if path then
+        model = ReplicatedStorage.Assets[path]:FindFirstChild(name, true)
+    else
+        model = ReplicatedStorage.Assets:FindFirstChild(name, true)
+    end
+
+    if not model then
+        error("Model could not be found")
+    end
+
+    return model:Clone()
+end
 
 return ModelService

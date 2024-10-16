@@ -93,4 +93,30 @@ function PlayerService.GetTempFolder(player : Player) : Folder
     return PlayerService.GetPlayerData(player)["temp"]
 end
 
+-- Move item into temp storage
+function PlayerService.MoveToTemp(player : Player, object) : nil
+    object.Parent = PlayerService.GetPlayerData(player)["temp"]
+end
+
+-- Request current player key (typically followed by a request to clear key)
+function PlayerService.RequestKey(player : Player) : table
+    return PlayerService.GetPlayerData(player)["key"]
+end
+
+-- Assign key (typically a tool)
+function PlayerService.AssignKey(player : Player, key : table) : boolean
+    local data = PlayerService.GetPlayerData(player)
+    if data["key"] then return false end
+    data["key"] = key -- else
+    return true
+end
+
+function PlayerService.ClearKey(player : Player) : nil
+    PlayerService.GetPlayerData(player)["key"] = nil
+end
+
+function PlayerService.SpawnNPC(player : Player, model : Model) : nil
+    model.Parent = PlayerService.GetPlayerData(player)["tycoon"]["NPCs"]
+end
+
 return PlayerService

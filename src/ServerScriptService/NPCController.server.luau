@@ -10,6 +10,7 @@ local PlayerService = require(ReplicatedStorage.Services.PlayerService)
 
 -- Events
 local PlayerEvents = ReplicatedStorage.Events.PlayerEvents
+local NPCEvents = ReplicatedStorage.Events.NPCEvents
 
 local NPCCharacters = {} -- player: {npc data}
 local PlayerData = {}
@@ -22,12 +23,14 @@ end
 
 Init() -- Call init immediately
 
-local function updateLine(player) -- moves up line if event happens -- !! TODO: connect to event
-    for i, attendant in NPCCharacters[player] do -- Move all humanoids up in the queue
+NPCEvents.UpdateLine.Event:Connect(function(player) -- moves up line if event happens
+    table.remove(PlayerData[player]["queue"], 1)
+    NPCService.GivePrompt(PlayerData.player[1])
+    for i, attendant in PlayerData[player]["queue"] do -- Move all humanoids up in the queue
         local pos = PlayerData[player]["end"].Position + Vector3.new(1, 0, 0) * 2 * (i-1)
         NPCService.WalkCharacter(attendant, pos, PlayerData[player]["end"].CFrame.LookVector)
     end
-end
+end)
 
 -- Receive information that player's active state has changed
 PlayerEvents.ActiveToggled.Event:Connect(function(player : Player, active : boolean)
@@ -44,6 +47,7 @@ PlayerEvents.ActiveToggled.Event:Connect(function(player : Player, active : bool
         NPCService.DestroyAll(NPCCharacters[player])
         NPCCharacters[player] = {} 
     elseif active then
+        PlayerData[player] = {}
         PlayerData[player]["step"] = 0
         PlayerData[player]["queue"] = {}
         PlayerData[player]["start"] = PlayerService.GetStartPoint(player)
@@ -53,48 +57,16 @@ PlayerEvents.ActiveToggled.Event:Connect(function(player : Player, active : bool
     while PlayerData[player]["active"] do -- increase step by 1 while player is active
         if PlayerData[player]["step"] % 10 == 0 then
             local npc = NPCService.SpawnNewCharacter(player, "regular", PlayerData[player]["start"].CFrame)
+            table.insert(PlayerData[player]["queue"], npc)
             table.insert(NPCCharacters[player], npc)
-            local pos = PlayerData[player]["end"].Position + Vector3.new(1, 0, 0) * 2 * (#NPCCharacters[player]-1)
+
+            local pos = PlayerData[player]["end"].Position + Vector3.new(1, 0, 0) * 2 * (#PlayerData[player]["queue"]-1)
             NPCService.WalkCharacter(npc, pos, PlayerData[player]["end"].Rotation)
+            if #PlayerData[player]["queue"] == 1 then
+                NPCService.GivePrompt(npc)
+            end
         end
         PlayerData[player]["step"] += 1
         task.wait(1)
     end
 end)
-
---[[ !! TODO: basically... what i need to do here is NOT run every heartbeat
-but instead do something with task.wait() or coroutines or SOMETHING so that it checks every second.
-]]
-
-
---[[
-local function routeTo(plr : Player, data : table)
-    local activeWasher = PlacementEvents.GetAvaliableWasher:Invoke(plr)
-
-    if activeWasher then 
-        local washer = activeWasher["model"]
-        if washer then
-            local complete = NPCService.WalkCharacter(data, washer:WaitForChild("Route").Position, {AgentCanJump = false, AgentRadius = 4})
-        end
-    end
-
-    if NPCService.GetStatus(data) == "Empty" then
-        ObjectService.UpdateStatus(activeWasher, "Running")
-        print('washer is empty!')
-    else
-        print('washer is full... need to reroute')
-        routeTo(data)
-    end
-end
-
-
-Players.PlayerAdded:Connect(function(player) -- test function for npc controller 
-    local character = player.Character or player.CharacterAdded:Wait()
-    local data = NPCService.SpawnCharacter("regular", character.HumanoidRootPart.CFrame)
-    NPCharacters[player] = data
-    task.wait(5)
-    routeTo(player, data)
-end)
-]]
--- Controllers keep track of events
--- Services keep track of behaviors

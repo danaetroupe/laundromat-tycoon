@@ -1,10 +1,11 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local States = require(ReplicatedStorage.Data.StatesData)
 
 return {
     name = "Washing Machine",
     currentLevel = 1,
     maxLevel = 3,
-    status = "Empty", -- Empty, Cycle In Progress, Complete
+    status = States.GetProperty("washer", "defaultState"),
     cost = 100,
     profit = 50,
     waterCharge = 25,
