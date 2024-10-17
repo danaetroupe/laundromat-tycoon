@@ -102,12 +102,11 @@ end
 function PlacementService.IsColliding(model : Model) : boolean
 	local touching = model.PrimaryPart:GetTouchingParts()
 	-- if intersecting with something that isn't part of the model then can't place
-	for i = 1, #touching do
-		if not touching[i]:IsDescendantOf(model) then
+	for _, part in touching do
+		if not part:IsDescendantOf(model) then
 			return true
 		end
 	end
-
 	return false
 end
 

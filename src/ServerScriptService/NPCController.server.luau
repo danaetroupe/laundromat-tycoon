@@ -25,7 +25,9 @@ Init() -- Call init immediately
 
 NPCEvents.UpdateLine.Event:Connect(function(player) -- moves up line if event happens
     table.remove(PlayerData[player]["queue"], 1)
-    NPCService.GivePrompt(PlayerData.player[1])
+	if #PlayerData[player]["queue"] >= 1 then -- check if queue is not empty
+		NPCService.GivePrompt(PlayerData.player[1])
+	end
     for i, attendant in PlayerData[player]["queue"] do -- Move all humanoids up in the queue
         local pos = PlayerData[player]["end"].Position + Vector3.new(1, 0, 0) * 2 * (i-1)
         NPCService.WalkCharacter(attendant, pos, PlayerData[player]["end"].CFrame.LookVector)
@@ -43,13 +45,12 @@ PlayerEvents.ActiveToggled.Event:Connect(function(player : Player, active : bool
     end
 
     PlayerData[player]["active"] = active
-    if not active and NPCCharacters[player] then
+	if not active and NPCCharacters[player] then -- if any npcs even currently exist destroy all of them
         NPCService.DestroyAll(NPCCharacters[player])
-        NPCCharacters[player] = {} 
+        NPCCharacters[player] = {}  
     elseif active then
-        PlayerData[player] = {}
-        PlayerData[player]["step"] = 0
-        PlayerData[player]["queue"] = {}
+        PlayerData[player]["step"] = 0 -- if active reset all values 
+        PlayerData[player]["queue"] = {} -- set queue to empty
         PlayerData[player]["start"] = PlayerService.GetStartPoint(player)
         PlayerData[player]["end"] = PlayerService.GetEndPoint(player)
     end

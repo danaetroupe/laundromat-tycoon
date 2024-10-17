@@ -20,6 +20,10 @@
         {
             "Name": "InitTycoon",
             "ClassName": "RemoteEvent"
+        },
+        {
+            "Name": "ChangeValue",
+            "ClassName": "BindableEvent"
         }
     ]
 }

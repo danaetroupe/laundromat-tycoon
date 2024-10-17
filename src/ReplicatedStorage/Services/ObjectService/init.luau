@@ -40,4 +40,9 @@ function ObjectService.GetName(data : table) : string
     return data["name"]
 end
 
+-- Changes state
+function ObjectService.ChangeState(data : table) : nil
+    
+end
+
 return ObjectService

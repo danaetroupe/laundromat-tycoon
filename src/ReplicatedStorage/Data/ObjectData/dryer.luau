@@ -12,4 +12,5 @@ return {
     coinCount = 0,
     maxCoinCount = 500,
     timeRemaining = 0,
+    laundry = nil
 }
