@@ -31,8 +31,13 @@ function ToolService.AssignNPC(data : Tool, npc : NPC) : nil -- !!should npc be 
 end
 
 -- Get tool state
-function ToolService.GetState(tool : Tool) : ToolStates.tool
+function ToolService.GetState(tool : Tool) : ToolStates.ToolState
     return tool["state"]
+end
+
+-- Change tool state
+function ToolService.ChangeState(tool : Tool, state : ToolStates.ToolState)
+    tool["state"] = state
 end
 
 return ToolService

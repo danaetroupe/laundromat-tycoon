@@ -6,22 +6,27 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local PlayerData = require(ReplicatedStorage.Data.PlayerData)
+local Types = require(ReplicatedStorage.Data.Types)
+
 local PlayerEvents = ReplicatedStorage.Events.PlayerEvents
 
+type Tycoon = Types.Tycoon 
 local isServer = RunService:IsServer()
 local PlayerService = {}
 
-function PlayerService.Reset(data : table) : nil
+-- Reset when player leaves
+function PlayerService.Reset(data : Tycoon) : nil
     data["claim"].Transparency = 0
 end
 
-function PlayerService.GetClaim(data : table) : Part
+-- Get the player claim part
+function PlayerService.GetClaim(data : Tycoon) : Part
     return data["claim"]
 end
 
 -- Assigns tycoon to player
 function PlayerService.AssignToPlayer(player : Player, tycoon : Model) : nil 
-    local data = table.clone(PlayerData.Get())
+    local data : Tycoon = table.clone(PlayerData)
     data["player"] = player
     data["tycoon"] = tycoon
     PlayerEvents.ActiveToggled:Fire(data["player"], data["active"])
@@ -51,12 +56,12 @@ function PlayerService.GetBasePartFromPlayer(player : Player) : Part
 end
 
 -- Returns base part from player data (use on server)
-function PlayerService.GetBasePartFromData(data : table) : Part
+function PlayerService.GetBasePartFromData(data : Tycoon) : Part
     return data["tycoon"].Base
 end
 
 -- Inserts given model into baseobjects -- !! TODO: Add additional state property to objects (inventory or in world)
-function PlayerService.StoreObject(data : table, model : Model)
+function PlayerService.StoreObject(data : Tycoon, model : Model)
     table.insert(data["baseObjects"], model)
 end
 
@@ -68,7 +73,7 @@ function PlayerService.IsBaseObject(player : Player, obj : Model) : boolean
 end
 
 -- Toggles active value of playerdata
-function PlayerService.ToggleActive(data : table) : boolean
+function PlayerService.ToggleActive(data : Tycoon) : boolean
     if not isServer then
         return PlayerEvents.ChangeActive:InvokeServer()
     else
@@ -98,7 +103,7 @@ function PlayerService.MoveToTemp(player : Player, object) : nil
 end
 
 -- Request current player key (typically followed by a request to clear key)
-function PlayerService.RequestKey(player : Player) : table
+function PlayerService.RequestKey(player : Player) : Tool
     return PlayerService.GetPlayerData(player)["key"]
 end
 

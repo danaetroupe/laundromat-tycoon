@@ -31,4 +31,13 @@ export type Object = {
     prompt: ProximityPrompt?
 }
 
+export type Tycoon = {
+    money: number,
+	player: Player,
+	tycoon: Model?,
+	baseObjects: table,
+	active: boolean,
+	key: Tool?
+}
+
 return {}
