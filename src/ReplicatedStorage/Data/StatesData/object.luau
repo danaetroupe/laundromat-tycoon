@@ -1,4 +1,5 @@
-export type state = "Empty" | "In Progress" | "Complete"
+export type washer = "Empty" | "In Progress" | "Complete"
+export type object = washer
 
 return {
     defaultState = "Empty"
