@@ -6,7 +6,7 @@ local RunSerivce = game:GetService("RunService")
 local ObjectData = require(ReplicatedStorage.Data.ObjectData)
 local PlayerService = require(ReplicatedStorage.Services.PlayerService)
 local ModelService = require(ReplicatedStorage.Util.ModelService)
-local ObjectState = require(ReplicatedStorage.Data.StatesData.object)
+local ObjectState = require(ReplicatedStorage.Data.StatesData.ObjectStates)
 
 -- Constants
 

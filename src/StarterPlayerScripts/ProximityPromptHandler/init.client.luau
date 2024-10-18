@@ -8,7 +8,7 @@ local ObjectEvents = ReplicatedStorage.Events.ObjectEvents
 
 local LocalPlayer = Players.LocalPlayer
 
-ObjectEvents.CreatePrompt.OnServerEvent:Connect(function(object : table)
+ObjectEvents.CreatePrompt.OnClientEvent:Connect(function(object : table)
     local prompt = Instance.new("ProximityPrompt")
     local key = PlayerService.RequestKey(LocalPlayer)
     

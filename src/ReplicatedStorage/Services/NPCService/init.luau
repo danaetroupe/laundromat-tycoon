@@ -15,13 +15,14 @@ local NPCEvents = ReplicatedStorage.Events.NPCEvents
 
 -- Constants
 local Model = ServerStorage.NPC.model
+type NPC = NPCData.NPC
 
 -- Events
 local NPCService = {}
 
 -- Spawns character in world and creates if necessary
-function NPCService.SpawnNewCharacter(player : Player, type : string, point : CFrameValue) : table
-    local data = table.clone(NPCData.Get(type))
+function NPCService.SpawnNewCharacter(player : Player, type : string, point : CFrameValue) : NPC
+    local data : NPC = table.clone(NPCData)
     local character : Model = data["character"]
     if character then
         PlayerService.SpawnNPC(player, character)
@@ -46,7 +47,7 @@ function NPCService.SpawnNewCharacter(player : Player, type : string, point : CF
 end
 
 -- Walks character to point
-function NPCService.WalkCharacter(data : table, point : Vector3, rotation : Vector3)
+function NPCService.WalkCharacter(data : NPC, point : Vector3, rotation : Vector3)
     local character : Model = data["character"]
     if not character then
         error("Character not given.")
@@ -65,25 +66,21 @@ function NPCService.WalkCharacter(data : table, point : Vector3, rotation : Vect
     
 end
 
-function NPCService.GetStatus(data : table) : string
+function NPCService.GetStatus(data : NPC) : string
     return data["status"]
 end
 
-function NPCService.DestroyAll(npcs : table) : nil
+function NPCService.DestroyAll(npcs : {NPC}) : nil
     for _, npc in npcs do
         npc["character"]:Destroy()
     end
-end
-
-function NPCService.GetSpawnFrequency() : number
-    return NPCData.GetProperty("settings", "spawnFrequency")
 end
 
 function NPCService.GetHumanoid(data) : Humanoid
     return data["model"].Humanoid
 end
 
-function NPCService.FaceForwards(npc : table, part : Part)
+function NPCService.FaceForwards(npc : NPC, part : Part)
     local character : Model = npc["character"]
     character:PivotTo(CFrame.lookAt(character.PrimaryPart.CFrame.Position, part.CFrame.LookVector))
 end

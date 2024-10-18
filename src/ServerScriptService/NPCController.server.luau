@@ -18,7 +18,7 @@ local Settings = {}
 
 -- Init settings
 local function Init() : nil
-    Settings.spawnFrequency = NPCService.GetSpawnFrequency()
+    Settings.spawnFrequency = 60
 end
 
 Init() -- Call init immediately

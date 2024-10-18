@@ -1,10 +1,13 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local StatesData = require(ReplicatedStorage.Data.StatesData)
+local ToolStates = require(ReplicatedStorage.Data.StatesData.ToolStates)
+local Types = require(ReplicatedStorage.Data.Types)
+type Tool = Types.Tool
 
-return
-{
+local laundrybasket : Tool = {
     name = "Laundry Basket",
-    model = "laundrybasket",
+    assetName = "laundrybasket",
     npc = nil,
-    state = StatesData.GetProperty("laundry", "defaultState")
+    state = ToolStates.defaultState
 }
+
+return laundrybasket
