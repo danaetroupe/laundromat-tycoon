@@ -3,6 +3,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ModelService = require(ReplicatedStorage.Util.ModelService)
 
 local ToolData = require(ReplicatedStorage.Data.ToolData)
+local ToolStates = require(ReplicatedStorage.Data.StatesData.tool)
 
 local ToolService = {}
 
@@ -23,6 +24,11 @@ end
 -- Associates an npc with the tool
 function ToolService.AssignNPC(data : table, npc : table) : nil -- !!should npc be passed in as the model? 
     data["npc"] = npc
+end
+
+-- Get tool state
+function ToolService.GetState(tool : table) 
+    return ToolStates
 end
 
 return ToolService

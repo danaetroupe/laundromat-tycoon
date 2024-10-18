@@ -18,6 +18,11 @@ function ObjectService.CreateNew(name : string, player : Player)
     data = table.clone(data)
     local model = ReplicatedStorage.Assets.Objects:FindFirstChild(data["model"], true)
     data["model"] = ModelService.CreateOnServer(model, PlayerService.GetTempFolder(player))
+
+    -- Create a proximity prompt for interactions
+    local prompt = Instance.new("ProximityPrompt")
+    prompt.Parent = data["model"]
+    prompt.Enabled = false
     return data
 end
 
@@ -38,6 +43,21 @@ end
 -- Given a data table, get the visual object name
 function ObjectService.GetName(data : table) : string
     return data["name"]
+end
+
+-- Run object cycle
+function ObjectService.RunCycle(object : table) : bool
+    -- Check for player key
+
+    -- Check player key is dirty if washing machine or clean if dryer
+
+    -- Check that object coin count + profit < maxCoinCount
+
+    -- If all of these checks are true, switch state
+
+    -- Disable proximity prompt
+
+    -- Show time remaining using cycleTime
 end
 
 return ObjectService

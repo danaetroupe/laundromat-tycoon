@@ -5,7 +5,7 @@ return {
     name = "Washing Machine",
     currentLevel = 1,
     maxLevel = 3,
-    status = States.GetProperty("washer", "defaultState"),
+    state = States.GetProperty("washer", "defaultState"),
     cost = 100,
     profit = 50,
     waterCharge = 25,
@@ -15,5 +15,6 @@ return {
     coinCount = 0,
     maxCoinCount = 500, 
     timeRemaining = 0,
-    model = "washingmachine"
+    model = "washingmachine",
+    prompt = nil
 }
