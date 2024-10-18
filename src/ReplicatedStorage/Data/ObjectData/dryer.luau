@@ -12,5 +12,6 @@ return {
     coinCount = 0,
     maxCoinCount = 500,
     timeRemaining = 0,
-    prompt = nil
+    prompt = nil,
+    laundry = nil
 }

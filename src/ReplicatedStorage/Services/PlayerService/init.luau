@@ -75,7 +75,6 @@ function PlayerService.ToggleActive(data : table) : boolean
         data["active"] = not data["active"]
         PlayerEvents.ActiveToggled:Fire(data["player"], data["active"])
         return data["active"]
-
     end
 end
 
@@ -107,7 +106,7 @@ end
 function PlayerService.AssignKey(player : Player, key : table) : boolean
     local data = PlayerService.GetPlayerData(player)
     if data["key"] then return false end
-    data["key"] = key -- else
+    PlayerEvents.ChangeValue:Fire(player, "key", key)
     return true
 end
 

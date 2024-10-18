@@ -44,10 +44,15 @@ Players.PlayerRemoving:Connect(function(plr) -- Clear player data
     PlayerData[plr] = nil
 end)
 
-PlayerEvents.GetServerPlayerData.OnInvoke = function(player)
+PlayerEvents.GetServerPlayerData.OnInvoke = function(player : Player)
     return PlayerData[player]
 end
 
 PlayerEvents.ChangeActive.OnServerInvoke = function(player)
     return PlayerService.ToggleActive(PlayerData[player])
 end
+
+-- Set player data to new value
+PlayerEvents.ChangeValue.Event:Connect(function(player : Player, key : string, value : any)
+    PlayerData[player][key] = value
+end)
