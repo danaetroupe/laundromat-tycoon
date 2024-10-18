@@ -11,8 +11,7 @@ local LocalPlayer = Players.LocalPlayer
 ObjectEvents.CreatePrompt.OnClientEvent:Connect(function(object : table)
     local prompt = Instance.new("ProximityPrompt")
     local key = PlayerService.RequestKey(LocalPlayer)
-    
-    
+
     prompt.ActionText = "Unload"
     prompt.ObjectText = ObjectService.GetName(object)
 end)

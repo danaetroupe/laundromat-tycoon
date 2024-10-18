@@ -1,17 +1,20 @@
-return {
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ObjectStates = require(ReplicatedStorage.Data.StatesData.ObjectStates)
+local Types = require(ReplicatedStorage.Data.Types)
+
+type Object = Types.Object
+
+local dryer : Object = {
     name = "Dryer",
     currentLevel = 1,
     maxLevel = 3,
-    status = "Empty", -- Empty, Cycle In Progress, Complete
+    state = ObjectStates.defaultState,
     cost = 100,
-    profit = 50,
-    electricCharge = 10,
-    weeklyUses = 0,
-    model = "dryer",
     cycleTime = 30,
-    coinCount = 0,
-    maxCoinCount = 500,
     timeRemaining = 0,
-    prompt = nil,
-    laundry = nil
+    assetName = "dryer",
+    model = nil,
+    prompt = nil
 }
+
+return dryer

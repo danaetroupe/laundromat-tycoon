@@ -56,7 +56,7 @@ PlayerEvents.ActiveToggled.Event:Connect(function(player : Player, active : bool
     end
 
     while PlayerData[player]["active"] do -- increase step by 1 while player is active
-        if PlayerData[player]["step"] % 10 == 0 then
+        if PlayerData[player]["step"] % 45 == 0 then
             local npc = NPCService.SpawnNewCharacter(player, "regular", PlayerData[player]["start"].CFrame)
             table.insert(PlayerData[player]["queue"], npc)
             table.insert(NPCCharacters[player], npc)

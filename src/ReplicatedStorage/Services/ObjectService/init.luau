@@ -7,18 +7,19 @@ local ObjectData = require(ReplicatedStorage.Data.ObjectData)
 local PlayerService = require(ReplicatedStorage.Services.PlayerService)
 local ModelService = require(ReplicatedStorage.Util.ModelService)
 local ObjectState = require(ReplicatedStorage.Data.StatesData.ObjectStates)
+local Types = require(ReplicatedStorage.Data.Types)
 
 -- Constants
-
+type Object = Types.Object
 
 -- Events
 local ObjectService = {}
 
 -- Returns new data table of object name
 function ObjectService.CreateNew(name : string, player : Player)
-    local data = ObjectData.Get(name)
+    local data : Object = ObjectData.Get(name)
     data = table.clone(data)
-    local model = ReplicatedStorage.Assets.Objects:FindFirstChild(data["model"], true)
+    local model = ReplicatedStorage.Assets.Objects:FindFirstChild(data["assetName"], true)
     data["model"] = ModelService.CreateOnServer(model, PlayerService.GetTempFolder(player))
 
     -- Create a proximity prompt for interactions
