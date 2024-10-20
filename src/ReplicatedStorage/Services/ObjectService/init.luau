@@ -84,6 +84,9 @@ function ObjectService.RunCycle(object : Object) : boolean
     elseif object.name == "Dryer" then
         expectedLaundryState = "Clean"
         nextState = "Dry"
+    elseif object.name == "Folding Table" then
+        expectedLaundryState = "Dry"
+        nextState = "Ready"
     else
         error("Machine not recognized for state: " ..object.name)
     end

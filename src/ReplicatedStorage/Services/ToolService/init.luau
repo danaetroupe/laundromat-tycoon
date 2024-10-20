@@ -1,6 +1,8 @@
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local ModelService = require(ReplicatedStorage.Util.ModelService)
+local NPCService = require(ReplicatedStorage.Services.NPCService)
 
 local ToolData = require(ReplicatedStorage.Data.ToolData)
 local ToolStates = require(ReplicatedStorage.Data.StatesData.ToolStates)
@@ -9,6 +11,7 @@ local Types = require(ReplicatedStorage.Data.Types)
 type ToolInfo = Types.ToolInfo
 type NPC = Types.NPC
 
+local LocalPlayer = Players.LocalPlayer
 local ToolService = {}
 
 -- Gives player tool and activates it
@@ -39,6 +42,9 @@ end
 -- Change tool state
 function ToolService.ChangeState(tool : ToolInfo, state : ToolStates.ToolState)
     tool["state"] = state
+    if state == "Ready" then
+        NPCService.AddToQueue(tool.npc)
+    end
 end
 
 function ToolService.DestroyModel(tool : ToolInfo)

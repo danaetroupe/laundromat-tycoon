@@ -111,4 +111,9 @@ function NPCService.GivePrompt(npc : NPC)
     end
 end
 
+-- Add existing NPC to queue to be spawned // client only
+function NPCService.AddToQueue(npc : NPC)
+    -- TODO: needs to be implemented :)
+end
+
 return NPCService
