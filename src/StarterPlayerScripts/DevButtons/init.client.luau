@@ -21,9 +21,7 @@ Move(DevButtons.LeftFrame.Move)
 Active(DevButtons.LeftFrame.Toggle)
 
 PlayerEvents.InitTycoon.OnClientEvent:Connect(function(playerData)
-    print('init called')
     for _, object in ObjectService.GetNames() do
-        print(object)
         local button = DevButtons.RightFrame.Template:Clone()
         button.Parent = DevButtons.RightFrame
         local data = ObjectService.CreateNew(object, LocalPlayer)

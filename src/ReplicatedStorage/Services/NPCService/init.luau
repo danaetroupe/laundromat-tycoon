@@ -97,14 +97,16 @@ function NPCService.GivePrompt(npc : NPC)
         local prompt = Instance.new("ProximityPrompt")
         prompt.Parent = npc.character
         prompt.Triggered:Connect(function(player)
-            local tool = ToolService.GiveTool(player, "laundrybasket")
-            local success = PlayerService.AssignKey(tool)
-            if success then 
-                PlayerService.MoveToTemp(npc.character)
-                NPCEvents.UpdateLine:FireServer()
-            else
-                ToolService.Destroy(tool)
-            end
+            if not PlayerService.RequestKey(player) then
+                local tool = ToolService.GiveTool(player, "laundrybasket")
+                local success = PlayerService.AssignKey(tool)
+                if success then 
+                    PlayerService.MoveToTemp(npc.character)
+                    NPCEvents.UpdateLine:FireServer()
+                else
+                    ToolService.Destroy(tool)
+                end
+            end 
         end)
     end
 end
