@@ -14,9 +14,10 @@ local ToolService = {}
 -- Gives player tool and activates it
 function ToolService.GiveTool(player : Player, toolName : string) : table
     local character = player.Character or player.CharacterAdded:Wait()
+    local humanoid = character.Humanoid
     local tool = table.clone(ToolData.Get(toolName))
     tool.model = ModelService.GetModelFromStorage(tool.assetName, "Tools")
-    tool.model.Parent = character
+    humanoid:EquipTool(tool.model)
     return tool
 end
 

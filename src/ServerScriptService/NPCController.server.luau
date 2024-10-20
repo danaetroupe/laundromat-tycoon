@@ -23,7 +23,7 @@ end
 
 Init() -- Call init immediately
 
-NPCEvents.UpdateLine.Event:Connect(function(player) -- moves up line if event happens
+NPCEvents.UpdateLine.OnServerEvent:Connect(function(player) -- moves up line if event happens
     table.remove(PlayerData[player]["queue"], 1)
 	if #PlayerData[player]["queue"] >= 1 then -- check if queue is not empty
 		NPCService.GivePrompt(PlayerData.player[1])

@@ -7,7 +7,7 @@
         },
         {
             "Name": "UpdateLine",
-            "ClassName": "BindableEvent"
+            "ClassName": "RemoteEvent"
         },
         {
             "Name": "ExecuteOnClient",

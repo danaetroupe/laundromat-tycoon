@@ -98,8 +98,12 @@ function PlayerService.GetTempFolder(player : Player) : Folder
 end
 
 -- Move item into temp storage
-function PlayerService.MoveToTemp(player : Player, object) : nil
-    object.Parent = PlayerService.GetPlayerData(player)["temp"]
+function PlayerService.MoveToTemp(data, object) : nil
+    if isServer then
+        object.Parent = data["temp"]
+    else
+        return PlayerEvents.ExecuteOnServer:InvokeServer("MoveToTemp", data)
+    end
 end
 
 -- Request current player key (typically followed by a request to clear key)
