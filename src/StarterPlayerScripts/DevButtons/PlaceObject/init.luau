@@ -20,6 +20,8 @@ local placeActive : boolean = false
 local currModel : Model = nil
 local basePart : Part = nil
 
+local objInfo = nil
+
 local ROTATE = "Rotate"
 local QUIT = "Quit"
 local PLACE = "Place"
@@ -37,6 +39,17 @@ local function handleInput(name, userInputState, input)
         elseif name == PLACE then
             if not PlacementService.IsColliding(currModel) then
                 PlacementService.Place(Object, PlacementService.CalcPlacementCFrame(basePart, currModel, Mouse.Hit.p, rotation))
+                local prompt = Instance.new("ProximityPrompt")
+                prompt.ObjectText = ObjectService.GetName(objInfo)
+                prompt.Parent = ObjectService.GetModel(objInfo)
+
+                local clone = objInfo
+
+                prompt.Triggered:Connect(function(trigger)
+                    local success = ObjectService.RunCycle(clone)
+                    success = if success then "True" else "False"
+                    print('run cycle success: '.. success)
+                end)
                 handleInput(QUIT, Enum.UserInputState.Begin, nil)
             end
         end
@@ -65,5 +78,6 @@ return function(button : TextButton, object : table) -- Gives functionality to "
         Object = ObjectService.GetModel(object)
         currModel = Object:Clone()
         currModel.Parent = Mouse.TargetFilter
+        objInfo = object
     end)
 end

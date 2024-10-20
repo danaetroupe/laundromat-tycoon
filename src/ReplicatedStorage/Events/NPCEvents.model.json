@@ -8,6 +8,10 @@
         {
             "Name": "UpdateLine",
             "ClassName": "BindableEvent"
+        },
+        {
+            "Name": "ExecuteOnClient",
+            "ClassName": "RemoteEvent"
         }
         
     ]

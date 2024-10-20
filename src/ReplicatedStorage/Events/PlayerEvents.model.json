@@ -24,6 +24,10 @@
         {
             "Name": "ChangeValue",
             "ClassName": "BindableEvent"
+        },
+        {
+            "Name": "ExecuteOnServer",
+            "ClassName": "RemoteFunction"
         }
     ]
 }

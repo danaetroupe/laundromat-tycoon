@@ -6,7 +6,7 @@ local ToolData = require(ReplicatedStorage.Data.ToolData)
 local ToolStates = require(ReplicatedStorage.Data.StatesData.ToolStates)
 local Types = require(ReplicatedStorage.Data.Types)
 
-type Tool = Types.Tool
+type ToolInfo = Types.ToolInfo
 type NPC = Types.NPC
 
 local ToolService = {}
@@ -20,24 +20,28 @@ function ToolService.GiveTool(player : Player, toolName : string) : table
     return tool
 end
 
-function ToolService.Destroy(toolData : Tool) : nil
+function ToolService.Destroy(toolData : ToolInfo) : nil
     toolData.model:Destroy()
     table.clear(toolData)
 end
 
 -- Associates an npc with the tool
-function ToolService.AssignNPC(data : Tool, npc : NPC) : nil -- !!should npc be passed in as the model? 
+function ToolService.AssignNPC(data : ToolInfo, npc : NPC) : nil -- !!should npc be passed in as the model? 
     data["npc"] = npc
 end
 
 -- Get tool state
-function ToolService.GetState(tool : Tool) : ToolStates.ToolState
+function ToolService.GetState(tool : ToolInfo) : ToolStates.ToolState
     return tool["state"]
 end
 
 -- Change tool state
-function ToolService.ChangeState(tool : Tool, state : ToolStates.ToolState)
+function ToolService.ChangeState(tool : ToolInfo, state : ToolStates.ToolState)
     tool["state"] = state
+end
+
+function ToolService.DestroyModel(tool : ToolInfo)
+    tool.model:Destroy()
 end
 
 return ToolService

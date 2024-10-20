@@ -1,5 +1,6 @@
 -- Services
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local ServerStorage = game:GetService("ServerStorage")
 
 -- Modules
@@ -8,16 +9,18 @@ local OutfitData = require(ReplicatedStorage.Data.OutfitData)
 local MovementService = require(ReplicatedStorage.Util.MovementService)
 local ToolService = require(ReplicatedStorage.Services.ToolService)
 local PlayerService = require(ReplicatedStorage.Services.PlayerService)
+local Types = require(ReplicatedStorage.Data.Types)
+local ModelService = require(ReplicatedStorage.Util.ModelService)
 
 -- Events
 local MovementEvents = ReplicatedStorage.Events.MovementEvents
 local NPCEvents = ReplicatedStorage.Events.NPCEvents
 
 -- Constants
-local Model = ServerStorage.NPC.model
-type NPC = NPCData.NPC
+type NPC = Types.NPC
 
 -- Events
+local isServer = RunService:IsServer()
 local NPCService = {}
 
 -- Spawns character in world and creates if necessary
@@ -27,7 +30,7 @@ function NPCService.SpawnNewCharacter(player : Player, type : string, point : CF
     if character then
         PlayerService.SpawnNPC(player, character)
     else
-        character = Model:Clone() -- Create new character
+        character = ModelService.GetModelFromStorage("NPC", "NPC")
         PlayerService.SpawnNPC(player, character)
 
         local humanoid = character.Humanoid or character:WaitForChild("Humanoid")
@@ -86,21 +89,23 @@ function NPCService.FaceForwards(npc : NPC, part : Part)
 end
 
 -- Give NPC a proximity prompt
-function NPCService.GivePrompt(npc)
-    local prompt = Instance.new("ProximityPrompt")
-    prompt.Parent = npc.character
-    prompt.Triggered:Connect(function(player)
-        if player == npc["player"] then
+function NPCService.GivePrompt(npc : NPC)
+    if isServer then
+        NPCEvents.ExecuteOnClient:FireClient(npc.player, "GivePrompt", npc)
+    else
+        local prompt = Instance.new("ProximityPrompt")
+        prompt.Parent = npc.character
+        prompt.Triggered:Connect(function(player)
             local tool = ToolService.GiveTool(player, "laundrybasket")
-            local success = PlayerService.AssignKey(player, tool)
+            local success = PlayerService.AssignKey(tool)
             if success then 
                 PlayerService.MoveToTemp(player, npc.character)
                 NPCEvents.UpdateLine:Fire(player)
             else
                 ToolService.Destroy(tool)
             end
-        end
-    end)
+        end)
+    end
 end
 
 return NPCService

@@ -10,10 +10,10 @@ export type NPC = {
 	player : Player?
 }
 
-export type Tool = {
+export type ToolInfo = {
     name: string?,
     assetName: string?,
-    model: Model?, 
+    model: Tool?, 
     state: ToolState.ToolState,
     npc : NPC?
 }
@@ -37,7 +37,7 @@ export type Tycoon = {
 	tycoon: Model?,
 	baseObjects: table,
 	active: boolean,
-	key: Tool?
+	key: ToolInfo?
 }
 
 return {}

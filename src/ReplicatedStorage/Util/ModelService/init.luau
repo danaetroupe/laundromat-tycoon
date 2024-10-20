@@ -24,7 +24,7 @@ if isServer then
     end
 end
 
-function ModelService.GetModelFromStorage(name : string, path : string) : Tool
+function ModelService.GetModelFromStorage(name : string, path : string) : Model
     local model = nil
     if path then
         model = ReplicatedStorage.Assets[path]:FindFirstChild(name, true)
@@ -36,7 +36,7 @@ function ModelService.GetModelFromStorage(name : string, path : string) : Tool
         error("Model could not be found")
     end
 
-    return model:Clone()
+    return ModelService.CreateOnServer(model, workspace)
 end
 
 return ModelService

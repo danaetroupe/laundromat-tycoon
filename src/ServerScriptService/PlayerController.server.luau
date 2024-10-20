@@ -3,10 +3,12 @@ local Players = game:GetService("Players")
 
 local PlayerService = require(ReplicatedStorage.Services.PlayerService)
 local PlacementService = require(ReplicatedStorage.Util.PlacementService)
+local Types = require(ReplicatedStorage.Data.Types)
 
 local PlayerEvents = ReplicatedStorage.Events.PlayerEvents
 local PlacementEvents = ReplicatedStorage.Events.PlacementEvents
 
+type PlayerInfo = Types.PlayerInfo
 local PlayerData = {}
 
 local function Init() : nil -- Initalize service
@@ -56,3 +58,10 @@ end
 PlayerEvents.ChangeValue.Event:Connect(function(player : Player, key : string, value : any)
     PlayerData[player][key] = value
 end)
+
+-- Execute function on server
+PlayerEvents.ExecuteOnServer.OnServerInvoke = function(player : Player, func : string, ...)
+    if PlayerData[player] then
+        return PlayerService[func](PlayerData[player],...)
+    end
+end

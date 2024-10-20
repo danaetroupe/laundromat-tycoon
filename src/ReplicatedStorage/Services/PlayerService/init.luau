@@ -103,20 +103,27 @@ function PlayerService.MoveToTemp(player : Player, object) : nil
 end
 
 -- Request current player key (typically followed by a request to clear key)
-function PlayerService.RequestKey(player : Player) : Tool
+function PlayerService.RequestKey(player : Player) : ToolInfo
     return PlayerService.GetPlayerData(player)["key"]
 end
 
 -- Assign key (typically a tool)
-function PlayerService.AssignKey(player : Player, key : table) : boolean
-    local data = PlayerService.GetPlayerData(player)
-    if data["key"] then return false end
-    PlayerEvents.ChangeValue:Fire(player, "key", key)
-    return true
+function PlayerService.AssignKey(data : Tycoon, key : table) : boolean
+    if isServer then
+        if data["key"] then return false end
+        data["key"] = key
+        return true
+    else
+        return PlayerEvents.ExecuteOnServer:InvokeServer("AssignKey", data)
+    end
 end
 
-function PlayerService.ClearKey(player : Player) : nil
-    PlayerService.GetPlayerData(player)["key"] = nil
+function PlayerService.ClearKey(data : Tycoon) : nil
+    if isServer then
+        data["key"] = nil
+    else
+        PlayerEvents.ExecuteOnServer:InvokeServer("ClearKey")
+    end
 end
 
 function PlayerService.SpawnNPC(player : Player, model : Model) : nil
