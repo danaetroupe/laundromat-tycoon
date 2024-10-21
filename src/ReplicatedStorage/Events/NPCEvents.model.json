@@ -12,7 +12,10 @@
         {
             "Name": "ExecuteOnClient",
             "ClassName": "RemoteEvent"
+        },
+        {
+            "Name": "SpawnNPC",
+            "ClassName": "RemoteEvent"
         }
-        
     ]
 }

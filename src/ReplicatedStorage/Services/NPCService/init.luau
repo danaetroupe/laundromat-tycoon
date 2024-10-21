@@ -24,15 +24,11 @@ local isServer = RunService:IsServer()
 local NPCService = {}
 
 -- Spawns character in world and creates if necessary
-function NPCService.SpawnNewCharacter(player : Player, type : string, point : CFrameValue) : NPC
-    local data : NPC = table.clone(NPCData)
+function NPCService.SpawnNewCharacter(player : Player, point : CFrameValue, data : NPC) : NPC
+    data = data or table.clone(NPCData)
     local character : Model = data["character"]
-    if character then
-        PlayerService.SpawnNPC(player, character)
-    else
+    if not character then
         character = ModelService.GetModelFromStorage("NPC", "NPC")
-        PlayerService.SpawnNPC(player, character)
-
         local humanoid = character.Humanoid or character:WaitForChild("Humanoid")
         local humDesc = humanoid:GetAppliedDescription()
 
@@ -43,6 +39,7 @@ function NPCService.SpawnNewCharacter(player : Player, type : string, point : CF
         humanoid:ApplyDescription(humDesc)
     end
 
+    PlayerService.MoveToNPCFolder(player, character)
     character.HumanoidRootPart.CFrame = point -- Set to point
     data["character"] = character
     data["player"] = player 
@@ -113,7 +110,7 @@ end
 
 -- Add existing NPC to queue to be spawned // client only
 function NPCService.AddToQueue(npc : NPC)
-    -- TODO: needs to be implemented :)
+    NPCEvents.MoveToNPCFolder:FireServer(npc)
 end
 
 return NPCService

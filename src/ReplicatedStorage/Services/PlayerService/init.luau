@@ -130,7 +130,7 @@ function PlayerService.ClearKey(data : Tycoon) : nil
     end
 end
 
-function PlayerService.SpawnNPC(player : Player, model : Model) : nil
+function PlayerService.MoveToNPCFolder(player : Player, model : Model) : nil
     model.Parent = PlayerService.GetPlayerData(player)["tycoon"]["NPCs"]
 end
 
