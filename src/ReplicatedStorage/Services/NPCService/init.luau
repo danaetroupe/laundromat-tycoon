@@ -12,16 +12,14 @@ local ModelService = require(ReplicatedStorage.Util.ModelService)
 
 local NPCData = require(ReplicatedStorage.Data.NPCData)
 local OutfitData = require(ReplicatedStorage.Data.OutfitData)
-local NPCStates = require(ReplicatedStorage.Data.StatesData.NPCStates)
-local Types = require(ReplicatedStorage.Data.Types)
 
 -- Events
 local MovementEvents = ReplicatedStorage.Events.MovementEvents
 local NPCEvents = ReplicatedStorage.Events.NPCEvents
 
 -- Constants
-type NPC = Types.NPC
-type NPCState = NPCStates.NPCState
+type NPC = NPCData.NPC
+type NPCState = NPCData.NPC
 
 -- Events
 local isServer = RunService:IsServer()
@@ -106,6 +104,7 @@ function NPCService.GivePrompt(npc : NPC)
                 if success then 
                     PlayerService.MoveToTemp(npc.character)
                     NPCEvents.UpdateLine:FireServer()
+                    prompt:Destroy()
                 else
                     ToolService.Destroy(tool)
                 end

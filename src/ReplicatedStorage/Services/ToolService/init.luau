@@ -5,22 +5,21 @@ local ModelService = require(ReplicatedStorage.Util.ModelService)
 local NPCEvents = ReplicatedStorage.Events.NPCEvents
 
 local ToolData = require(ReplicatedStorage.Data.ToolData)
-local ToolStates = require(ReplicatedStorage.Data.StatesData.ToolStates)
-local NPCStates = require(ReplicatedStorage.Data.StatesData.NPCStates)
-local Types = require(ReplicatedStorage.Data.Types)
+local Tools = require(ReplicatedStorage.Data.ToolData.Tools)
+local NPCData = require(ReplicatedStorage.Data.NPCData)
 
-type ToolInfo = Types.ToolInfo
-type NPCState = NPCStates.NPCState
-type NPC = Types.NPC
+type ToolInfo = ToolData.ToolInfo
+type NPCState = NPCData.NPCState
+type ToolState = ToolData.ToolState
+type NPC = NPCData.NPC
 
-local LocalPlayer = Players.LocalPlayer
 local ToolService = {}
 
 -- Gives player tool and activates it
 function ToolService.GiveTool(player : Player, toolName : string, npc : NPC) : table
     local character = player.Character or player.CharacterAdded:Wait()
     local humanoid = character.Humanoid
-    local tool : ToolInfo = table.clone(ToolData.Get(toolName))
+    local tool : ToolInfo = table.clone(Tools.GetTool(toolName))
     tool.npc = npc
     tool.model = ModelService.GetModelFromStorage(tool.assetName, "Tools")
     humanoid:EquipTool(tool.model)
@@ -38,12 +37,12 @@ function ToolService.AssignNPC(data : ToolInfo, npc : NPC) : nil -- !!should npc
 end
 
 -- Get tool state
-function ToolService.GetState(tool : ToolInfo) : ToolStates.ToolState
+function ToolService.GetState(tool : ToolInfo) : ToolState
     return tool["state"]
 end
 
 -- Change tool state
-function ToolService.ChangeState(tool : ToolInfo, state : ToolStates.ToolState)
+function ToolService.ChangeState(tool : ToolInfo, state : ToolState)
     tool["state"] = state
     if state == "Ready" then
         tool.npc.state = "PickUp"

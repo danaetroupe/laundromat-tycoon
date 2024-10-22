@@ -1,0 +1,19 @@
+local ObjectData = require(script.Parent.Parent)
+
+type InteractableObject = ObjectData.Object
+type MachineState = ObjectData.ObjectState
+
+local table : InteractableObject = {
+    name = "Folding Table",
+    currentLevel = 1,
+    maxLevel = 3,
+    state = "Empty",
+    cost = 100,
+    cycleTime = 15,
+    timeRemaining = 0,
+    assetName = "table",
+    model = nil,
+    prompt = nil
+}
+
+return table

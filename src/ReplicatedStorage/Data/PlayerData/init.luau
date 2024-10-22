@@ -1,8 +1,18 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
---!strict
-local Types = require(ReplicatedStorage.Data.Types)
+local ToolData = require(ReplicatedStorage.Data.ToolData)
 
-local playerInfo : Types.PlayerData = {
+type ToolInfo = ToolData.ToolInfo
+
+export type PlayerData = {
+    money: number,
+	player: Player,
+	tycoon: Model?,
+	baseObjects: table,
+	active: boolean,
+	key: ToolInfo?
+}
+
+local info : PlayerData = {
 	money = 0,
 	player = nil,
 	tycoon = nil,
@@ -11,4 +21,4 @@ local playerInfo : Types.PlayerData = {
 	key = nil
 }
 
-return playerInfo
+return info

@@ -6,27 +6,29 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local PlayerData = require(ReplicatedStorage.Data.PlayerData)
-local Types = require(ReplicatedStorage.Data.Types)
+local ToolData = require(ReplicatedStorage.Data.ToolData)
 
 local PlayerEvents = ReplicatedStorage.Events.PlayerEvents
 
-type Tycoon = Types.Tycoon 
+type PlayerData = PlayerData.PlayerData
+type ToolInfo = ToolData.ToolInfo
+
 local isServer = RunService:IsServer()
 local PlayerService = {}
 
 -- Reset when player leaves
-function PlayerService.Reset(data : Tycoon) : nil
+function PlayerService.Reset(data : PlayerData) : nil
     data["claim"].Transparency = 0
 end
 
 -- Get the player claim part
-function PlayerService.GetClaim(data : Tycoon) : Part
+function PlayerService.GetClaim(data : PlayerData) : Part
     return data["claim"]
 end
 
 -- Assigns tycoon to player
 function PlayerService.AssignToPlayer(player : Player, tycoon : Model) : nil 
-    local data : Tycoon = table.clone(PlayerData)
+    local data : PlayerData = table.clone(PlayerData)
     data["player"] = player
     data["tycoon"] = tycoon
     PlayerEvents.ActiveToggled:Fire(data["player"], data["active"])
@@ -56,12 +58,12 @@ function PlayerService.GetBasePartFromPlayer(player : Player) : Part
 end
 
 -- Returns base part from player data (use on server)
-function PlayerService.GetBasePartFromData(data : Tycoon) : Part
+function PlayerService.GetBasePartFromData(data : PlayerData) : Part
     return data["tycoon"].Base
 end
 
 -- Inserts given model into baseobjects
-function PlayerService.StoreObject(data : Tycoon, model : Model)
+function PlayerService.StoreObject(data : PlayerData, model : Model)
     table.insert(data["baseObjects"], model)
 end
 
@@ -73,7 +75,7 @@ function PlayerService.IsBaseObject(player : Player, obj : Model) : boolean
 end
 
 -- Toggles active value of playerdata
-function PlayerService.ToggleActive(data : Tycoon) : boolean
+function PlayerService.ToggleActive(data : PlayerData) : boolean
     if not isServer then
         return PlayerEvents.ChangeActive:InvokeServer()
     else
@@ -112,7 +114,7 @@ function PlayerService.RequestKey(player : Player) : ToolInfo
 end
 
 -- Assign key (typically a tool)
-function PlayerService.AssignKey(data : Tycoon, key : table) : boolean
+function PlayerService.AssignKey(data : PlayerData, key : table) : boolean
     if isServer then
         if data["key"] then return false end
         data["key"] = key
@@ -122,7 +124,7 @@ function PlayerService.AssignKey(data : Tycoon, key : table) : boolean
     end
 end
 
-function PlayerService.ClearKey(data : Tycoon) : nil
+function PlayerService.ClearKey(data : PlayerData) : nil
     if isServer then
         data["key"] = nil
     else

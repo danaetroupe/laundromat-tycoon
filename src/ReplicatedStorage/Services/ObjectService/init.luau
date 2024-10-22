@@ -4,22 +4,22 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 -- Modules
-local ObjectData = require(ReplicatedStorage.Data.ObjectData)
 local PlayerService = require(ReplicatedStorage.Services.PlayerService)
 local ModelService = require(ReplicatedStorage.Util.ModelService)
 local ToolService = require(ReplicatedStorage.Services.ToolService)
-local ObjectStates = require(ReplicatedStorage.Data.StatesData.ObjectStates)
-local ToolStates = require(ReplicatedStorage.Data.StatesData.ToolStates)
-local Types = require(ReplicatedStorage.Data.Types)
+
+local ObjectData = require(ReplicatedStorage.Data.ObjectData)
+local ToolData = require(ReplicatedStorage.Data.ToolData)
+local Objects = require(ReplicatedStorage.Data.ObjectData.Objects)
 
 -- Events
 local ObjectEvents = ReplicatedStorage.Events.ObjectEvents
 
 -- Constants
-type Object = Types.Object
-type ToolInfo = Types.ToolInfo
-type MachineState = ObjectStates.MachineState
-type LaundryState = ToolStates.LaundryState
+type Object = ObjectData.Object
+type ToolInfo = ToolData.ToolInfo
+type MachineState = ObjectData.MachineState
+type LaundryState = ToolData.LaundryState
 
 local isServer = RunService:IsServer()
 local LocalPlayer = Players.LocalPlayer
@@ -29,7 +29,7 @@ local ObjectService = {}
 
 -- GET PROPERTIES --------------------------------------------------------------------
 -- Get object state
-function ObjectService.GetState(object : Object) : ObjectStates.ObjectState
+function ObjectService.GetState(object : Object) : MachineState
     return object["state"]
 end
 
@@ -40,7 +40,7 @@ end
 
 -- Get names of all the objects
 function ObjectService.GetNames() : table
-    return ObjectData:GetObjectNames()
+    return Objects.GetObjectNames()
 end
 
 -- Given a data table, get the visual object name
@@ -60,7 +60,7 @@ end
 -- Returns new data table of object name
 function ObjectService.CreateNew(name : string, player : Player) 
     -- runs on client
-    local data : Object = ObjectData.Get(name)
+    local data : Object = Objects.GetObject(name)
     data = table.clone(data)
     local model = ReplicatedStorage.Assets.Objects:FindFirstChild(data["assetName"], true)
     data["model"] = ModelService.CreateOnServer(model, PlayerService.GetTempFolder(player))
