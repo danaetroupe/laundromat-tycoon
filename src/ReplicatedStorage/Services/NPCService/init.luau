@@ -8,6 +8,7 @@ local ToolService = require(ReplicatedStorage.Services.ToolService)
 local PlayerService = require(ReplicatedStorage.Services.PlayerService)
 local ModelService = require(ReplicatedStorage.Util.ModelService)
 
+-- Data
 local NPCData = require(ReplicatedStorage.Data.NPCData)
 local OutfitData = require(ReplicatedStorage.Data.OutfitData)
 
@@ -15,7 +16,7 @@ local OutfitData = require(ReplicatedStorage.Data.OutfitData)
 local MovementEvents = ReplicatedStorage.Events.MovementEvents
 local NPCEvents = ReplicatedStorage.Events.NPCEvents
 
--- Constants
+-- Types
 type NPC = NPCData.NPC
 type NPCState = NPCData.NPC
 
