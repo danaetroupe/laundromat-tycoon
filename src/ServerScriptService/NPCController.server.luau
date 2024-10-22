@@ -13,18 +13,10 @@ local Types = require(ReplicatedStorage.Data.Types)
 local PlayerEvents = ReplicatedStorage.Events.PlayerEvents
 local NPCEvents = ReplicatedStorage.Events.NPCEvents
 
-local NPCCharacters = {} -- player: {npc data}
+local NPCCharacters = {} -- player: {npc data} !!TODO: delete NPCCharacters as its recursive
 local PlayerData = {}
-local Settings = {}
 
 type NPC = Types.NPC
-
--- Init settings
-local function Init() : nil
-    Settings.spawnFrequency = 60
-end
-
-Init() -- Call init immediately
 
 -- local function to spawn npc and add to queue
 local function spawn(player : Player, npc : NPC)
@@ -40,7 +32,7 @@ local function spawn(player : Player, npc : NPC)
 end
 
 -- Connect SpawnNPC event to spawn
-NPCEvents.SpawnNPC:Connect(spawn)
+NPCEvents.SpawnNPC.OnServerEvent:Connect(spawn)
 
 NPCEvents.UpdateLine.OnServerEvent:Connect(function(player) -- moves up line if event happens
     table.remove(PlayerData[player]["queue"], 1)

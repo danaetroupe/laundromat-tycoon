@@ -1,16 +1,19 @@
 -- Services
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local ServerStorage = game:GetService("ServerStorage")
 
 -- Modules
-local NPCData = require(ReplicatedStorage.Data.NPCData)
-local OutfitData = require(ReplicatedStorage.Data.OutfitData)
 local MovementService = require(ReplicatedStorage.Util.MovementService)
 local ToolService = require(ReplicatedStorage.Services.ToolService)
 local PlayerService = require(ReplicatedStorage.Services.PlayerService)
-local Types = require(ReplicatedStorage.Data.Types)
 local ModelService = require(ReplicatedStorage.Util.ModelService)
+
+local NPCData = require(ReplicatedStorage.Data.NPCData)
+local OutfitData = require(ReplicatedStorage.Data.OutfitData)
+local NPCStates = require(ReplicatedStorage.Data.StatesData.NPCStates)
+local Types = require(ReplicatedStorage.Data.Types)
 
 -- Events
 local MovementEvents = ReplicatedStorage.Events.MovementEvents
@@ -18,6 +21,7 @@ local NPCEvents = ReplicatedStorage.Events.NPCEvents
 
 -- Constants
 type NPC = Types.NPC
+type NPCState = NPCStates.NPCState
 
 -- Events
 local isServer = RunService:IsServer()
@@ -63,7 +67,6 @@ function NPCService.WalkCharacter(data : NPC, point : Vector3, rotation : Vector
             connect:Disconnect()
         end
     end)
-    
 end
 
 function NPCService.GetStatus(data : NPC) : string
@@ -94,8 +97,11 @@ function NPCService.GivePrompt(npc : NPC)
         local prompt = Instance.new("ProximityPrompt")
         prompt.Parent = npc.character
         prompt.Triggered:Connect(function(player)
-            if not PlayerService.RequestKey(player) then
-                local tool = ToolService.GiveTool(player, "laundrybasket")
+            local state = npc.state
+            local key = PlayerService.RequestKey(player)
+            local keyNPC = if key then ToolService.GetNPC(key) else nil
+            if state == "DropOff" and not PlayerService.RequestKey(player) then
+                local tool = ToolService.GiveTool(player, "laundrybasket", npc)
                 local success = PlayerService.AssignKey(tool)
                 if success then 
                     PlayerService.MoveToTemp(npc.character)
@@ -103,6 +109,11 @@ function NPCService.GivePrompt(npc : NPC)
                 else
                     ToolService.Destroy(tool)
                 end
+            elseif state == "PickUp" and key and keyNPC.character == npc.character then
+                ToolService.Destroy(key)
+                npc.character:Destroy()
+                NPCEvents.UpdateLine:FireServer()
+                -- TODO: record satsifaction and whatnot... what events happen when they die
             end 
         end)
     end
@@ -111,6 +122,11 @@ end
 -- Add existing NPC to queue to be spawned // client only
 function NPCService.AddToQueue(npc : NPC)
     NPCEvents.MoveToNPCFolder:FireServer(npc)
+end
+
+-- Change NPC state 
+function NPCService.ChangeState(npc : NPC, state : NPCState)
+    npc.state = state
 end
 
 return NPCService

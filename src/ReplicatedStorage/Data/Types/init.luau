@@ -1,5 +1,6 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ToolState = require(ReplicatedStorage.Data.StatesData.ToolStates)
+local NPCStates = require(ReplicatedStorage.Data.StatesData.NPCStates)
 local ObjectStates = require(ReplicatedStorage.Data.StatesData.ObjectStates)
 
 export type NPC = {
@@ -7,7 +8,8 @@ export type NPC = {
 	happiness: number,
 	rarity : "common" | "premium",
 	character : Model?,
-	player : Player?
+	player : Player?,
+    state : NPCStates.NPCState
 }
 
 export type ToolInfo = {

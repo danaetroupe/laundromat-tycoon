@@ -60,7 +60,7 @@ function PlayerService.GetBasePartFromData(data : Tycoon) : Part
     return data["tycoon"].Base
 end
 
--- Inserts given model into baseobjects -- !! TODO: Add additional state property to objects (inventory or in world)
+-- Inserts given model into baseobjects
 function PlayerService.StoreObject(data : Tycoon, model : Model)
     table.insert(data["baseObjects"], model)
 end

@@ -2,23 +2,26 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local ModelService = require(ReplicatedStorage.Util.ModelService)
-local NPCService = require(ReplicatedStorage.Services.NPCService)
+local NPCEvents = ReplicatedStorage.Events.NPCEvents
 
 local ToolData = require(ReplicatedStorage.Data.ToolData)
 local ToolStates = require(ReplicatedStorage.Data.StatesData.ToolStates)
+local NPCStates = require(ReplicatedStorage.Data.StatesData.NPCStates)
 local Types = require(ReplicatedStorage.Data.Types)
 
 type ToolInfo = Types.ToolInfo
+type NPCState = NPCStates.NPCState
 type NPC = Types.NPC
 
 local LocalPlayer = Players.LocalPlayer
 local ToolService = {}
 
 -- Gives player tool and activates it
-function ToolService.GiveTool(player : Player, toolName : string) : table
+function ToolService.GiveTool(player : Player, toolName : string, npc : NPC) : table
     local character = player.Character or player.CharacterAdded:Wait()
     local humanoid = character.Humanoid
-    local tool = table.clone(ToolData.Get(toolName))
+    local tool : ToolInfo = table.clone(ToolData.Get(toolName))
+    tool.npc = npc
     tool.model = ModelService.GetModelFromStorage(tool.assetName, "Tools")
     humanoid:EquipTool(tool.model)
     return tool
@@ -43,12 +46,17 @@ end
 function ToolService.ChangeState(tool : ToolInfo, state : ToolStates.ToolState)
     tool["state"] = state
     if state == "Ready" then
-        NPCService.AddToQueue(tool.npc)
+        tool.npc.state = "PickUp"
+        NPCEvents.SpawnNPC:FireServer(tool.npc)
     end
 end
 
 function ToolService.DestroyModel(tool : ToolInfo)
     tool.model:Destroy()
+end
+
+function ToolService.GetNPC(tool : ToolInfo) : NPC
+    return tool.npc
 end
 
 return ToolService
