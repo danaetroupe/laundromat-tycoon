@@ -69,7 +69,7 @@ PlayerEvents.ActiveToggled.Event:Connect(function(player : Player, active : bool
     end
 
     while PlayerData[player]["active"] do -- increase step by 1 while player is active
-        if PlayerData[player]["step"] % 45 == 0 then
+        if PlayerData[player]["step"] % PlayerService.GetSpawnRate(player) == 0 then
             spawn(player)
         end
         PlayerData[player]["step"] += 1

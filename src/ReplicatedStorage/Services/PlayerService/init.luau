@@ -146,4 +146,9 @@ function PlayerService.MoveToNPCFolder(player : Player, model : Model) : nil
     model.Parent = PlayerService.GetPlayerData(player)["tycoon"]["NPCs"]
 end
 
+-- Get spawn rate
+function PlayerService.GetSpawnRate(player : Player) : number
+    return PlayerService.GetPlayerData(player)["spawn_rate"]
+end
+
 return PlayerService
