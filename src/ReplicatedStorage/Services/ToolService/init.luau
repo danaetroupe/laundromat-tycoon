@@ -44,8 +44,7 @@ end
 function ToolService.ChangeState(tool : ToolInfo, state : ToolState)
     tool["state"] = state
     if state == "Ready" then
-        tool.npc.state = "PickUp"
-        NPCEvents.SpawnNPC:FireServer(tool.npc)
+        NPCEvents.SpawnNPC:FireServer("pickup", tool.npc)
     end
 end
 

@@ -15,20 +15,18 @@ local NPCEvents = ReplicatedStorage.Events.NPCEvents
 -- Types
 type NPC = NPCData.NPC
 
-local NPCCharacters = {} -- player: {npc data} !!TODO: delete NPCCharacters as its recursive
 local PlayerData = {}
 
 
-
 -- local function to spawn npc and add to queue
-local function spawn(player : Player, npc : NPC)
-    npc = NPCService.SpawnNewCharacter(player, PlayerData[player]["start"].CFrame, npc)
-    table.insert(PlayerData[player]["queue"], npc)
-    table.insert(NPCCharacters[player], npc)
+local function spawn(player : Player, line : string, npc : NPC)
+    local endPart : Part = PlayerData[player]["tycoon"][line]
+    npc = NPCService.SpawnNewCharacter(player, PlayerData[player]["tycoon"].Entry.CFrame, npc)
+    table.insert(PlayerData[player][line], npc)
 
-    local pos = PlayerData[player]["end"].Position + Vector3.new(1, 0, 0) * 2 * (#PlayerData[player]["queue"]-1)
-    NPCService.WalkCharacter(npc, pos, PlayerData[player]["end"].Rotation)
-    if #PlayerData[player]["queue"] == 1 then
+    local pos = endPart.Position + Vector3.new(1, 0, 0) * 2 * (#PlayerData[player][line]-1)
+    NPCService.WalkCharacter(npc, pos, endPart.Rotation)
+    if #PlayerData[player][line] == 1 then
         NPCService.GivePrompt(npc)
     end
 end
@@ -36,14 +34,14 @@ end
 -- Connect SpawnNPC event to spawn
 NPCEvents.SpawnNPC.OnServerEvent:Connect(spawn)
 
-NPCEvents.UpdateLine.OnServerEvent:Connect(function(player) -- moves up line if event happens
-    table.remove(PlayerData[player]["queue"], 1)
-	if #PlayerData[player]["queue"] >= 1 then -- check if queue is not empty
-		NPCService.GivePrompt(PlayerData[player]["queue"][1])
+NPCEvents.UpdateLine.OnServerEvent:Connect(function(player : Player, line : string) -- moves up line if event happens
+    table.remove(PlayerData[player][line], 1)
+	if #PlayerData[player][line] >= 1 then -- check if queue is not empty
+		NPCService.GivePrompt(PlayerData[player][line][1])
 	end
-    for i, attendant in PlayerData[player]["queue"] do -- Move all humanoids up in the queue
-        local pos = PlayerData[player]["end"].Position + Vector3.new(1, 0, 0) * 2 * (i-1)
-        NPCService.WalkCharacter(attendant, pos, PlayerData[player]["end"].Rotation)
+    for i, attendant in PlayerData[player][line] do -- Move all humanoids up in the queue
+        local pos = PlayerData[player]["tycoon"][line].Position + Vector3.new(1, 0, 0) * 2 * (i-1)
+        NPCService.WalkCharacter(attendant, pos, PlayerData[player]["tycoon"][line].Rotation)
     end
 end)
 
@@ -53,24 +51,20 @@ PlayerEvents.ActiveToggled.Event:Connect(function(player : Player, active : bool
         PlayerData[player] = {}
     end
 
-    if not NPCCharacters[player] then
-        NPCCharacters[player]  = {}
-    end
-
     PlayerData[player]["active"] = active
-	if not active and NPCCharacters[player] then -- if any npcs even currently exist destroy all of them
-        NPCService.DestroyAll(NPCCharacters[player])
-        NPCCharacters[player] = {}  
-    elseif active then
+	if active then -- if any npcs even currently exist destroy all of them    
         PlayerData[player]["step"] = 0 -- if active reset all values 
-        PlayerData[player]["queue"] = {} -- set queue to empty
-        PlayerData[player]["start"] = PlayerService.GetStartPoint(player)
-        PlayerData[player]["end"] = PlayerService.GetEndPoint(player)
+        PlayerData[player]["dropoff"] = {} -- set queue to empty
+        PlayerData[player]["pickup"] = {} -- set queue to empty
+        PlayerData[player]["tycoon"] = PlayerService.GetTycoon(player)
+    else
+        NPCService.DestroyAll(PlayerData["pickup"])
+        NPCService.DestroyAll(PlayerData["dropoff"])
     end
 
     while PlayerData[player]["active"] do -- increase step by 1 while player is active
         if PlayerData[player]["step"] % PlayerService.GetSpawnRate(player) == 0 then
-            spawn(player)
+            spawn(player, "dropoff")
         end
         PlayerData[player]["step"] += 1
         task.wait(1)

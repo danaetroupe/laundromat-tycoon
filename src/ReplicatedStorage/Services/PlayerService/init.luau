@@ -151,4 +151,9 @@ function PlayerService.GetSpawnRate(player : Player) : number
     return PlayerService.GetPlayerData(player)["spawn_rate"]
 end
 
+-- Get tycoon model
+function  PlayerService.GetTycoon(player : Player) : Model
+    return PlayerService.GetPlayerData(player)["tycoon"]
+end
+
 return PlayerService
