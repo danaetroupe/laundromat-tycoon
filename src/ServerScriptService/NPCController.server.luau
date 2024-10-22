@@ -1,20 +1,24 @@
-local Players = game:GetService("Players")
+-- Services
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local ServerStorage = game:GetService("ServerStorage")
-local RunService = game:GetService("RunService")
 
-local NPCData = require(ReplicatedStorage.Data.NPCData)
+-- Modules
 local NPCService = require(ReplicatedStorage.Services.NPCService)
 local PlayerService = require(ReplicatedStorage.Services.PlayerService)
+
+-- Data
+local NPCData = require(ReplicatedStorage.Data.NPCData)
 
 -- Events
 local PlayerEvents = ReplicatedStorage.Events.PlayerEvents
 local NPCEvents = ReplicatedStorage.Events.NPCEvents
 
+-- Types
+type NPC = NPCData.NPC
+
 local NPCCharacters = {} -- player: {npc data} !!TODO: delete NPCCharacters as its recursive
 local PlayerData = {}
 
-type NPC = NPCData.NPC
+
 
 -- local function to spawn npc and add to queue
 local function spawn(player : Player, npc : NPC)

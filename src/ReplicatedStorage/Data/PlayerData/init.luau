@@ -13,7 +13,7 @@ export type PlayerData = {
 }
 
 local info : PlayerData = {
-	money = 0,
+	money = 250,
 	player = nil,
 	tycoon = nil,
 	baseObjects = {},

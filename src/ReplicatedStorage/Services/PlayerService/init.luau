@@ -27,7 +27,7 @@ function PlayerService.GetClaim(data : PlayerData) : Part
 end
 
 -- Assigns tycoon to player
-function PlayerService.AssignToPlayer(player : Player, tycoon : Model) : nil 
+function PlayerService.AssignToPlayer(player : Player, tycoon : Model) : PlayerData 
     local data : PlayerData = table.clone(PlayerData)
     data["player"] = player
     data["tycoon"] = tycoon
@@ -44,6 +44,16 @@ function PlayerService.AssignToPlayer(player : Player, tycoon : Model) : nil
     data["temp"] = folder
     
     PlayerEvents.InitTycoon:FireClient(player, data)
+
+    -- Initalize leaderboard
+    local leaderstats = Instance.new("Folder")
+    leaderstats.Name = "leaderstats"
+    leaderstats.Parent = player
+
+    local money = Instance.new("IntValue")
+    money.Name = "Money"
+    money.Value = data.money
+    money.Parent = leaderstats
     return data
 end
 

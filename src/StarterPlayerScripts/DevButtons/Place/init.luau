@@ -6,10 +6,11 @@ local ContextActionService = game:GetService("ContextActionService")
 local PlayerService = require(ReplicatedStorage.Services.PlayerService)
 local PlacementService = require(ReplicatedStorage.Util.PlacementService)
 
-local PlayerEvents = ReplicatedStorage.Events.PlayerEvents
+local ObjectData = require(ReplicatedStorage.Data.ObjectData)
 --local PlacementEvents = ReplicatedStorage.Events.PlacementEvents
 
 local LocalPlayer = Players.LocalPlayer
+type Object = ObjectData.Object
 
 local TESTOBJECT : Model = ReplicatedStorage.Assets.Objects.washingmachine --[[
     change this to whichever asset you want to test
@@ -58,7 +59,7 @@ RunService.RenderStepped:Connect(function(dt)
     end
 end)
 
-return function(button : TextButton, object : data) -- Gives functionality to "Place" dev button
+return function(button : TextButton, object : Object) -- Gives functionality to "Place" dev button
     button.Activated:Connect(function()
         basePart = PlayerService.GetBasePartFromPlayer(LocalPlayer)
         Mouse.TargetFilter = basePart.BaseObjects
