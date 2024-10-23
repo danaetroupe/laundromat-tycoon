@@ -1,0 +1,17 @@
+{
+    "ClassName" : "Folder",
+    "Children": [
+        {
+            "Name": "GetInventory",
+            "ClassName": "RemoteFunction"
+        },
+        {
+            "Name": "RemoveFromInventory",
+            "ClassName": "RemoteEvent"
+        },
+        {
+            "Name": "AddToInventory",
+            "ClassName": "RemoteEvent"
+        }
+    ]
+}
