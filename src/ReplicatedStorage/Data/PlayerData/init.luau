@@ -9,16 +9,18 @@ export type PlayerData = {
 	tycoon: Model?,
 	baseObjects: table,
 	active: boolean,
-	key: ToolInfo?
+	key: ToolInfo?,
+	spawn_rate : number
 }
 
 local info : PlayerData = {
-	money = 0,
+	money = 250,
 	player = nil,
 	tycoon = nil,
 	baseObjects = {},
 	active = true,
-	key = nil
+	key = nil,
+	spawn_rate = 30
 }
 
 return info

@@ -13,7 +13,6 @@ local ToolData = require(ReplicatedStorage.Data.ToolData)
 local Objects = require(ReplicatedStorage.Data.ObjectData.Objects)
 
 -- Events
-local ObjectEvents = ReplicatedStorage.Events.ObjectEvents
 
 -- Constants
 type Object = ObjectData.Object
@@ -21,7 +20,7 @@ type ToolInfo = ToolData.ToolInfo
 type MachineState = ObjectData.MachineState
 type LaundryState = ToolData.LaundryState
 
-local isServer = RunService:IsServer()
+--local isServer = RunService:IsServer()
 local LocalPlayer = Players.LocalPlayer
 
 -- Events

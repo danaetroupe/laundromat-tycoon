@@ -102,7 +102,7 @@ function NPCService.GivePrompt(npc : NPC)
                 local success = PlayerService.AssignKey(tool)
                 if success then 
                     PlayerService.MoveToTemp(npc.character)
-                    NPCEvents.UpdateLine:FireServer()
+                    NPCEvents.UpdateLine:FireServer("dropoff")
                     prompt:Destroy()
                 else
                     ToolService.Destroy(tool)
@@ -110,7 +110,7 @@ function NPCService.GivePrompt(npc : NPC)
             elseif state == "PickUp" and key and keyNPC.character == npc.character then
                 ToolService.Destroy(key)
                 npc.character:Destroy()
-                NPCEvents.UpdateLine:FireServer()
+                NPCEvents.UpdateLine:FireServer("pickup")
                 -- TODO: record satsifaction and whatnot... what events happen when they die
             end 
         end)

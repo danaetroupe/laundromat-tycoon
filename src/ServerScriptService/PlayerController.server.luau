@@ -4,13 +4,13 @@ local Players = game:GetService("Players")
 local PlayerService = require(ReplicatedStorage.Services.PlayerService)
 local PlacementService = require(ReplicatedStorage.Util.PlacementService)
 
-local PlayerData = require(ReplicatedStorage.Data.PlayerData)
+local PD = require(ReplicatedStorage.Data.PlayerData)
 
 local PlayerEvents = ReplicatedStorage.Events.PlayerEvents
 local PlacementEvents = ReplicatedStorage.Events.PlacementEvents
 
-type PlayerData = PlayerData.PlayerData
-local PlayerInfo = {}
+type PlayerData = PD.PlayerData
+local PlayerInfo : PlayerData = {}
 
 local function Init() : nil -- Initalize service
     for _, tycoon in workspace.Tycoons:GetChildren() do
@@ -25,7 +25,7 @@ local function Init() : nil -- Initalize service
                 PlacementService.Init(tycoon.Base)
             end
         end)
-    end   
+    end 
 end
 
 Init()

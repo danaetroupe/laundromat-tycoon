@@ -7,6 +7,8 @@ local PlayerService = require(ReplicatedStorage.Services.PlayerService)
 local PlacementService = require(ReplicatedStorage.Util.PlacementService)
 local ObjectService = require(ReplicatedStorage.Services.ObjectService)
 
+local ObjectData = require(ReplicatedStorage.Data.ObjectData)
+
 local PlayerEvents = ReplicatedStorage.Events.PlayerEvents
 --local PlacementEvents = ReplicatedStorage.Events.PlacementEvents
 
@@ -20,7 +22,9 @@ local placeActive : boolean = false
 local currModel : Model = nil
 local basePart : Part = nil
 
-local objInfo = nil
+type Object = ObjectData.Object
+type InteractableObject = ObjectData.InteractableObject
+local objInfo : Object = nil
 
 local ROTATE = "Rotate"
 local QUIT = "Quit"
@@ -39,17 +43,20 @@ local function handleInput(name, userInputState, input)
         elseif name == PLACE then
             if not PlacementService.IsColliding(currModel) then
                 PlacementService.Place(Object, PlacementService.CalcPlacementCFrame(basePart, currModel, Mouse.Hit.p, rotation))
-                local prompt = Instance.new("ProximityPrompt")
-                prompt.ObjectText = ObjectService.GetName(objInfo)
-                prompt.Parent = ObjectService.GetModel(objInfo)
-
-                local clone = objInfo
-
-                prompt.Triggered:Connect(function(trigger)
-                    local success = ObjectService.RunCycle(clone)
-                    success = if success then "True" else "False"
-                    print('run cycle success: '.. success)
-                end)
+                -- Check if object is interactable
+                if objInfo.state then 
+                    local prompt = Instance.new("ProximityPrompt")
+                    prompt.ObjectText = ObjectService.GetName(objInfo)
+                    prompt.Parent = ObjectService.GetModel(objInfo)
+    
+                    local clone = objInfo
+    
+                    prompt.Triggered:Connect(function(trigger)
+                        local success = ObjectService.RunCycle(clone)
+                        success = if success then "True" else "False"
+                        print('Cycle Successful: '.. success)
+                    end)
+                end
                 handleInput(QUIT, Enum.UserInputState.Begin, nil)
             end
         end
