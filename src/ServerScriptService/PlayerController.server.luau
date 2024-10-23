@@ -25,7 +25,7 @@ local function Init() : nil -- Initalize service
                 PlacementService.Init(tycoon.Base)
             end
         end)
-    end 
+    end
 end
 
 Init()

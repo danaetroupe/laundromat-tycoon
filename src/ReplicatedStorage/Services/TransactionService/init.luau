@@ -1,0 +1,1 @@
+local COST_PER_CUSTOMER = 10

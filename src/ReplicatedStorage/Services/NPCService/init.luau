@@ -96,22 +96,24 @@ function NPCService.GivePrompt(npc : NPC)
         prompt.Triggered:Connect(function(player)
             local state = npc.state
             local key = PlayerService.RequestKey(player)
-            local keyNPC = if key then ToolService.GetNPC(key) else nil
+            local keyState = if key then ToolService.GetState(key) else nil
             if state == "DropOff" and not PlayerService.RequestKey(player) then
                 local tool = ToolService.GiveTool(player, "laundrybasket", npc)
                 local success = PlayerService.AssignKey(tool)
                 if success then 
-                    PlayerService.MoveToTemp(npc.character)
+                    NPCService.WalkOut(npc, false)
                     NPCEvents.UpdateLine:FireServer("dropoff")
                     prompt:Destroy()
                 else
                     ToolService.Destroy(tool)
                 end
-            elseif state == "PickUp" and key and keyNPC.character == npc.character then
+            elseif state == "PickUp" and key and keyState == "Ready" then
                 ToolService.Destroy(key)
-                npc.character:Destroy()
+                NPCService.WalkOut(npc, true)
                 NPCEvents.UpdateLine:FireServer("pickup")
                 -- TODO: record satsifaction and whatnot... what events happen when they die
+                PlayerService.AddMoney(player)
+                PlayerService.ClearKey()
             end 
         end)
     end
@@ -125,6 +127,18 @@ end
 -- Change NPC state 
 function NPCService.ChangeState(npc : NPC, state : NPCState)
     npc.state = state
+end
+
+-- Walk NPC out
+function NPCService.WalkOut(npc : NPC, destroy : boolean)
+    local part : Part = PlayerService.GetStartPoint(npc.player)
+    NPCService.WalkCharacter(npc, part.Position, part.Rotation)
+    task.wait(5)
+    if destroy then
+        npc.character:Destroy()
+    else
+        PlayerService.MoveToTemp(npc.character)
+    end
 end
 
 return NPCService

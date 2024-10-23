@@ -156,4 +156,21 @@ function  PlayerService.GetTycoon(player : Player) : Model
     return PlayerService.GetPlayerData(player)["tycoon"]
 end
 
+-- Update leaderstats value
+function PlayerService._UpdateLeaderstats(player : Player, value : number) : nil
+    local moneyVal : IntValue = player.leaderstats.Money
+    moneyVal.Value = value
+end
+
+-- Add money to player 
+function PlayerService.AddMoney(data : PlayerData) : nil
+    if isServer then
+        local newAmt = data.money + data.profit
+        PlayerEvents.ChangeValue:Fire(data.player, "money", newAmt)
+        PlayerService._UpdateLeaderstats(data.player, newAmt)
+    else
+        PlayerEvents.ExecuteOnServer:InvokeServer("AddMoney")
+    end
+end
+
 return PlayerService
