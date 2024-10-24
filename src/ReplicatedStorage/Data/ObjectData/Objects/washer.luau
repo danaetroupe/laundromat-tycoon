@@ -10,9 +10,11 @@ local washer : InteractableObject = {
     cost = 100,
     cycleTime = 30,
     timeRemaining = 0,
-    assetName = "washingmachine",
+    assetName = "washingmachine_closed",
     model = nil,
-    prompt = nil
+    prompt = nil,
+    expectedLaundryState = "Dirty",
+    nextState = "Clean"
 }
 
 return washer

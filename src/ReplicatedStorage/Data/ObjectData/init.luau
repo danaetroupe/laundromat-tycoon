@@ -1,5 +1,9 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 export type MachineState = "Empty" | "In Progress" | "Complete"
 export type ObjectState = MachineState
+
+local ToolData = require(ReplicatedStorage.Data.ToolData)
+type LaundryState = ToolData.LaundryState
 
 export type Object = {
     name: string,
@@ -14,6 +18,8 @@ export type Object = {
 
 export type InteractableObject = Object&{
     state: ObjectState,
+    expectedLaundryState : LaundryState,
+    nextState : LaundryState,
     prompt: ProximityPrompt?
 }
 

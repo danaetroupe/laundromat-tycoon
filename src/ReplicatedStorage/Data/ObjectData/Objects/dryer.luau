@@ -11,9 +11,11 @@ local dryer : InteractableObject = {
     cost = 100,
     cycleTime = 30,
     timeRemaining = 0,
-    assetName = "dryer",
+    assetName = "dryermachine_closed",
     model = nil,
-    prompt = nil
+    prompt = nil,
+    expectedLaundryState = "Clean",
+    nextState = "Dry"
 }
 
 return dryer
