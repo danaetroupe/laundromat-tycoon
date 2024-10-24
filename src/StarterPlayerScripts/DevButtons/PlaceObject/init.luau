@@ -49,12 +49,12 @@ local function handleInput(name, userInputState, input)
                     prompt.ObjectText = ObjectService.GetName(objInfo)
                     prompt.Parent = ObjectService.GetModel(objInfo)
     
-                    local clone = objInfo
+                    local clone : InteractableObject = objInfo
+                    clone.prompt = prompt
     
                     prompt.Triggered:Connect(function(trigger)
                         local success = ObjectService.RunCycle(clone)
                         success = if success then "True" else "False"
-                        print('Cycle Successful: '.. success)
                     end)
                 end
                 handleInput(QUIT, Enum.UserInputState.Begin, nil)

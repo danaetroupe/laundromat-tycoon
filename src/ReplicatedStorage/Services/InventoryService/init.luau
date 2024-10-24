@@ -5,7 +5,7 @@ local ObjectData = require(ReplicatedStorage.Data.ObjectData)
 
 local InventoryEvents = ReplicatedStorage.Events.InventoryEvents
 
-local isServer = RunService.IsServer()
+local isServer = RunService:IsServer()
 
 type Object = ObjectData.Object
 

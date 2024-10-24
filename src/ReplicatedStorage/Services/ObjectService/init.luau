@@ -1,12 +1,12 @@
 -- Services
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
 
 -- Modules
 local PlayerService = require(ReplicatedStorage.Services.PlayerService)
 local ModelService = require(ReplicatedStorage.Util.ModelService)
 local ToolService = require(ReplicatedStorage.Services.ToolService)
+local InteractableService = require(script.InteractableService)
 
 local ObjectData = require(ReplicatedStorage.Data.ObjectData)
 local ToolData = require(ReplicatedStorage.Data.ToolData)
@@ -16,11 +16,11 @@ local Objects = require(ReplicatedStorage.Data.ObjectData.Objects)
 
 -- Constants
 type Object = ObjectData.Object
+type Interactable = ObjectData.InteractableObject
 type ToolInfo = ToolData.ToolInfo
 type MachineState = ObjectData.MachineState
 type LaundryState = ToolData.LaundryState
 
---local isServer = RunService:IsServer()
 local LocalPlayer = Players.LocalPlayer
 
 -- Events
@@ -68,47 +68,25 @@ function ObjectService.CreateNew(name : string, player : Player)
 end
 
 -- Run object cycle
-function ObjectService.RunCycle(object : Object) : boolean
+function ObjectService.RunCycle(object : Interactable) : boolean
     -- Check for player key
-    local objectState : MachineState = ObjectService.GetState(object)
+    local objectState : MachineState = object.state
     local key = PlayerService.RequestKey(LocalPlayer)
-    local keyState = if key then ToolService.GetState(key) else nil
-
-    local expectedLaundryState = nil
-    local nextState = nil
-    -- Get expected laundry state
-    if object.name == "Washing Machine" then
-        expectedLaundryState = "Dirty"
-        nextState = "Clean"
-    elseif object.name == "Dryer" then
-        expectedLaundryState = "Clean"
-        nextState = "Dry"
-    elseif object.name == "Folding Table" then
-        expectedLaundryState = "Dry"
-        nextState = "Ready"
-    else
-        error("Machine not recognized for state: " ..object.name)
-    end
+    local keyState = if key then key.state else nil
 
     -- Check for machine in progress.. do nothing
     if objectState == "In Progress" then
-        print("machine in progress cannot interact.")
+        print("Machine in progress.")
         return false
     -- If machine is empty, check for expectedLaundry state and load machine
     elseif objectState == "Empty" then
-        if key and keyState == expectedLaundryState then -- if empty and laundry dirty, start cycle
+        if key and keyState == object.expectedLaundryState then -- if empty and laundry dirty, start cycle
             print('Starting '.. object.name)
             object["state"] = "In Progress"
             ToolService.DestroyModel(key)
             PlayerService.ClearKey()
-            for time = 5, 0, -1 do -- !! should be object.cycleTime but using 5 for testing
-                object.timeRemaining = time
-                print(time)
-                task.wait(1)
-            end
-            -- When cycle is complete, change laundry + object state
-            --ToolService.ChangeState(key, nextState)
-            object["state"] = "Complete" -- when done move to complete
+            object.prompt.Enabled = false
+            InteractableService.Display(object, object.model.Display)   
         else
             print("laundry does not load in ".. object.name)
             return false
@@ -116,8 +94,9 @@ function ObjectService.RunCycle(object : Object) : boolean
     -- If complete, make sure no key exists 
     elseif objectState == "Complete" then
         if not key then
+            InteractableService.ClearDisplay(object.model.Display)
             key = ToolService.GiveTool(LocalPlayer, "laundrybasket")
-            ToolService.ChangeState(key, nextState)
+            ToolService.ChangeState(key, object.nextState)
             object["state"] = "Empty"
             return PlayerService.AssignKey(key)
         else
