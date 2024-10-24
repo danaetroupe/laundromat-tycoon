@@ -26,7 +26,7 @@ type LaundryState = ToolData.LaundryState
 -- Constants
 local washingDecal = "rbxassetid://136582297962433"
 local clothesDecal = "rbxassetid://71280947937677"
-local ROTATION_SPEED = 60
+local ROTATION_SPEED = 360
 
 
 local InteractableService = {}
@@ -59,9 +59,9 @@ function InteractableService.Display(object : Interactable, display)
     while object.state == "In Progress" do
         text.Text = object.timeRemaining
          -- Wait for the next frame
-        task.wait(0.03) -- Adjust this to control the smoothness of the rotation (default ~30 frames per second)
+        task.wait(0.01) -- Adjust this to control the smoothness of the rotation (default ~30 frames per second)
         -- Create a CFrame rotation (rotating around the Y-axis)
-        part.CFrame = part.CFrame * CFrame.Angles(math.rad(ROTATION_SPEED) * 0.03, 0, 0)
+        part.CFrame = part.CFrame * CFrame.Angles(math.rad(ROTATION_SPEED) * 0.01, 0, 0)
     end
 end
 

@@ -11,7 +11,7 @@
         },
         {
             "Name": "AddToInventory",
-            "ClassName": "RemoteEvent"
+            "ClassName": "RemoteFunction"
         }
     ]
 }

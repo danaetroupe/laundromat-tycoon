@@ -15,6 +15,11 @@ function Objects.GetObject(name : string) : any
 	return _data[name]
 end
 
+-- Get all objects
+function Objects.GetAllObjects() : {Object}
+	return _data
+end
+
 -- Returns property of a specific object type
 function Objects.GetProperty(name: string, property: string) : any
 	return _data[name][property]

@@ -173,4 +173,23 @@ function PlayerService.AddMoney(data : PlayerData) : nil
     end
 end
 
+-- Get player money
+function PlayerService.GetMoney(player : Player) : number
+    return PlayerService.GetPlayerData(player)["money"]
+end
+
+-- Checks if player can purchase item, and if yes, then makes purchase
+function PlayerService.MakePurchase(player : Player, cost : number) : boolean
+    local data = PlayerService.GetPlayerData(player)
+
+    if data.money >= cost then
+        local newAmt = data.money - cost
+        PlayerEvents.ChangeValue:Fire(data.player, "money", newAmt)
+        PlayerService._UpdateLeaderstats(data.player, newAmt)
+        return true
+    end
+    
+    return false
+end
+
 return PlayerService

@@ -1,13 +1,24 @@
+-- Service4s
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
+-- Modules
+local ObjectService = require(ReplicatedStorage.Services.ObjectService)
+local PlayerService = require(ReplicatedStorage.Services.PlayerService)
+
+-- Data
 local ObjectData = require(ReplicatedStorage.Data.ObjectData)
 
+-- Events
 local InventoryEvents = ReplicatedStorage.Events.InventoryEvents
 
-local isServer = RunService:IsServer()
-
+-- Types
 type Object = ObjectData.Object
+
+-- Constants
+local LocalPlayer = Players.LocalPlayer
+local isServer = RunService:IsServer()
 
 local InventoryService = {}
 
@@ -19,3 +30,15 @@ function InventoryService.GetInventory() : {Object}
         print("Cannot retreive inventory from client")
     end
 end
+
+-- Returns false if cannot buy object, object if it can
+function InventoryService.BuyItem(itemName : string, player : Player) : Object | boolean
+    if isServer then
+        local object = ObjectService.CreateNew(itemName, player)
+        return if PlayerService.MakePurchase(player, object.cost) then object else false
+    else
+        return InventoryEvents.AddToInventory:InvokeServer(itemName)
+    end
+end
+
+return InventoryService

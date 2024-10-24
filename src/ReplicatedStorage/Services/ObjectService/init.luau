@@ -86,7 +86,7 @@ function ObjectService.RunCycle(object : Interactable) : boolean
             ToolService.DestroyModel(key)
             PlayerService.ClearKey()
             object.prompt.Enabled = false
-            InteractableService.Display(object, object.model.Display)   
+            if object.model.Display then InteractableService.Display(object, object.model.Display) 
         else
             print("laundry does not load in ".. object.name)
             return false
