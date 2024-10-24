@@ -45,6 +45,8 @@ local function timer(object : Interactable)
 end
 
 function InteractableService.Display(object : Interactable, display)
+    if not display then return end -- Folding table does not have a display
+    
     local time = coroutine.create(timer)
     coroutine.resume(time, object)
 
