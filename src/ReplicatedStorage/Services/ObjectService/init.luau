@@ -85,8 +85,7 @@ function ObjectService.RunCycle(object : Interactable) : boolean
             object["state"] = "In Progress"
             ToolService.DestroyModel(key)
             PlayerService.ClearKey()
-            object.prompt.Enabled = false
-            if object.model.Display then InteractableService.Display(object, object.model.Display) 
+            InteractableService.Display(object)
         else
             print("laundry does not load in ".. object.name)
             return false
@@ -94,7 +93,7 @@ function ObjectService.RunCycle(object : Interactable) : boolean
     -- If complete, make sure no key exists 
     elseif objectState == "Complete" then
         if not key then
-            InteractableService.ClearDisplay(object.model.Display)
+            InteractableService.ClearDisplay(object)
             key = ToolService.GiveTool(LocalPlayer, "laundrybasket")
             ToolService.ChangeState(key, object.nextState)
             object["state"] = "Empty"

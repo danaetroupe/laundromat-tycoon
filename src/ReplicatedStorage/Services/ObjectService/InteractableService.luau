@@ -36,6 +36,7 @@ function InteractableService.DoInteraction(object : Interactable)
 end
 
 local function timer(object : Interactable) 
+    object.prompt.Enabled = false
     for i = object.cycleTime, 0, -1 do
         object.timeRemaining = i
         task.wait(1)
@@ -44,8 +45,12 @@ local function timer(object : Interactable)
     object.prompt.Enabled = true
 end
 
-function InteractableService.Display(object : Interactable, display)
-    if not display then return end -- Folding table does not have a display
+function InteractableService.Display(object : Interactable)
+    local display = object.model:FindFirstChild("Display")
+    if not display then 
+        timer(object)
+        return
+    end -- Folding table does not have a display
     
     local time = coroutine.create(timer)
     coroutine.resume(time, object)
@@ -65,7 +70,10 @@ function InteractableService.Display(object : Interactable, display)
     end
 end
 
-function InteractableService.ClearDisplay(display)
+function InteractableService.ClearDisplay(object)
+    local display = object.model:FindFirstChild("Display")
+    if not display then return end
+
     display.Part.Decal.Transparency = 1
     display.DisplayGui.TextLabel.Text = ""
 end

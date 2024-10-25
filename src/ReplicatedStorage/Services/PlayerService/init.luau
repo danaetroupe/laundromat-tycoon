@@ -58,7 +58,7 @@ function PlayerService.AssignToPlayer(player : Player, tycoon : Model) : PlayerD
 end
 
 -- Get table of player data
-function PlayerService.GetPlayerData(player : Player) : table 
+function PlayerService.GetPlayerData(player : Player) : PlayerData 
     return if isServer then PlayerEvents.GetServerPlayerData:Invoke(player) else PlayerEvents.GetPlayerData:InvokeServer(player)
 end
 
@@ -110,11 +110,11 @@ function PlayerService.GetTempFolder(player : Player) : Folder
 end
 
 -- Move item into temp storage
-function PlayerService.MoveToTemp(data, object) : nil
+function PlayerService.MoveToTemp(object, serverData) : nil
     if isServer then
-        object.Parent = data["temp"]
+        object.Parent = serverData["temp"]
     else
-        return PlayerEvents.ExecuteOnServer:InvokeServer("MoveToTemp", data)
+        return PlayerEvents.ExecuteOnServer:InvokeServer("MoveToTemp", object)
     end
 end
 
@@ -124,19 +124,20 @@ function PlayerService.RequestKey(player : Player) : ToolInfo
 end
 
 -- Assign key (typically a tool)
-function PlayerService.AssignKey(data : PlayerData, key : table) : boolean
+function PlayerService.AssignKey(key : Tool, serverData : PlayerInfo) : boolean
     if isServer then
-        if data["key"] then return false end
-        data["key"] = key
+        if serverData["key"] then return false end
+        serverData["key"] = key
         return true
     else
-        return PlayerEvents.ExecuteOnServer:InvokeServer("AssignKey", data)
+        return PlayerEvents.ExecuteOnServer:InvokeServer("AssignKey", key)
     end
 end
 
-function PlayerService.ClearKey(data : PlayerData) : nil
+-- Accepts player data as parameter on server or player as paramater on client
+function PlayerService.ClearKey(player) : nil
     if isServer then
-        data["key"] = nil
+        player["key"] = nil
     else
         PlayerEvents.ExecuteOnServer:InvokeServer("ClearKey")
     end
