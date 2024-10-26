@@ -1,10 +1,12 @@
 --!strict
 -- This function is equipped to modify tycoon data
 
+local ContextActionService = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
+local ToolService = require(ReplicatedStorage.Services.ToolService)
 local PlayerData = require(ReplicatedStorage.Data.PlayerData)
 local ToolData = require(ReplicatedStorage.Data.ToolData)
 
@@ -13,7 +15,12 @@ local PlayerEvents = ReplicatedStorage.Events.PlayerEvents
 type PlayerData = PlayerData.PlayerData
 type ToolInfo = ToolData.ToolInfo
 
+local SETDOWN = "SETDOWN"
+
+local placeImg = "rbxassetid://90664024735834"
+
 local isServer = RunService:IsServer()
+local LocalPlayer = if not isServer then Players.LocalPlayer else nil
 local PlayerService = {}
 
 -- Reset when player leaves
@@ -130,6 +137,14 @@ function PlayerService.AssignKey(key : Tool, serverData : PlayerInfo) : boolean
         serverData["key"] = key
         return true
     else
+        local PlayerGui = LocalPlayer.PlayerGui
+        local Mobile = PlayerGui:FindFirstChild("Mobile")
+        ContextActionService:BindAction(SETDOWN, PlayerService._handleInput, true, Enum.KeyCode.P)
+        local button = ContextActionService:GetButton(SETDOWN)
+        if button then
+            button.Image = placeImg
+            button.Parent = Mobile.ActionButtons
+        end
         return PlayerEvents.ExecuteOnServer:InvokeServer("AssignKey", key)
     end
 end
@@ -139,6 +154,7 @@ function PlayerService.ClearKey(player) : nil
     if isServer then
         player["key"] = nil
     else
+        ContextActionService:UnbindAction(SETDOWN)
         PlayerEvents.ExecuteOnServer:InvokeServer("ClearKey")
     end
 end
@@ -191,6 +207,56 @@ function PlayerService.MakePurchase(player : Player, cost : number) : boolean
     end
     
     return false
+end
+
+function PlayerService._isWithinBounds(position)
+    local floorPart = PlayerService.GetBasePartFromPlayer(LocalPlayer)
+    local floorSize = floorPart.Size
+    local floorPos = floorPart.Position
+
+    local xMin = floorPos.X - (floorSize.X / 2)
+    local xMax = floorPos.X + (floorSize.X / 2)
+    local zMin = floorPos.Z - (floorSize.Z / 2)
+    local zMax = floorPos.Z + (floorSize.Z / 2)
+
+    return position.X >= xMin and position.X <= xMax and position.Z >= zMin and position.Z <= zMax
+end
+
+function PlayerService._handleInput(name, userInputState, input)
+    if userInputState == Enum.UserInputState.Begin and name == SETDOWN then
+        -- Get player key and position
+        local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+        local lookVector = character.HumanoidRootPart.CFrame.LookVector
+        local position = character.HumanoidRootPart.Position + (lookVector * 2)
+        local key = PlayerService.RequestKey(LocalPlayer)
+        --  Check if valid
+        if key and PlayerService._isWithinBounds(position) then
+            PlayerService.MoveToWorld(key, position)
+        end
+    end
+end
+
+function PlayerService.MoveToWorld(tool : ToolInfo, position : Vector3) : nil
+    if isServer then
+        tool.model.Handle.Name = "NotHandle"
+        tool.model.Parent = workspace
+        tool.model.PrimaryPart.Anchored = true
+    else
+        PlayerService.ClearKey(LocalPlayer)
+        -- Create prompt on client to pick basket back up
+        local prompt = Instance.new("ProximityPrompt")
+        prompt.Parent = tool.model.PrimaryPart
+        prompt.ObjectText = "Basket"
+        prompt.ActionText = "Pick Up"
+        -- If prompt triggered, then reassign key and destroy prompt
+        prompt.Triggered:Connect(function(player)
+            ToolService._ReEnableTool(tool)
+            ToolService.EquipExistingTool(player,tool)
+            PlayerService.AssignKey(tool)
+            prompt:Destroy()
+        end)
+        PlayerEvents.ExecuteOnServer:InvokeServer("MoveToWorld", tool, position)
+    end
 end
 
 return PlayerService

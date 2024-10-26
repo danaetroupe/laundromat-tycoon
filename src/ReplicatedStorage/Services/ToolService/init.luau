@@ -3,7 +3,6 @@ local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 
 local ModelService = require(ReplicatedStorage.Util.ModelService)
-local PlayerService = require(ReplicatedStorage.Services.PlayerService)
 
 local ToolData = require(ReplicatedStorage.Data.ToolData)
 local Tools = require(ReplicatedStorage.Data.ToolData.Tools)
@@ -89,34 +88,13 @@ function ToolService._ReEnableTool(tool : ToolInfo)
     end
 end
 
-function ToolService.MoveToWorld(tool : ToolInfo, position : Vector3) : nil
-    if isServer then
-        tool.model.Handle.Name = "NotHandle"
-        tool.model.Parent = workspace
-        tool.model.PrimaryPart.Anchored = true
-    else
-        PlayerService.ClearKey(LocalPlayer)
-        -- Create prompt on client to pick basket back up
-        local prompt = Instance.new("ProximityPrompt")
-        prompt.Parent = tool.model.PrimaryPart
-        prompt.ObjectText = "Basket"
-        prompt.ActionText = "Pick Up"
-        -- If prompt triggered, then reassign key and destroy prompt
-        prompt.Triggered:Connect(function(player)
-            ToolService._ReEnableTool(tool)
-            ToolService.EquipExistingTool(player,tool)
-            PlayerService.AssignKey(tool)
-            prompt:Destroy()
-        end)
-        ToolEvents.ExecuteOnServer:InvokeServer("MoveToWorld", tool, position)
-    end
-end
-
 -- Allows server side communication
 if isServer then
     ToolEvents.ExecuteOnServer.OnServerInvoke = function(player, func, ...)
         return ToolService[func](...)
     end
 end
+
+
 
 return ToolService
