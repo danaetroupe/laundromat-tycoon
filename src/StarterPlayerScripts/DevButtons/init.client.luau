@@ -7,11 +7,12 @@ local PlayerEvents = ReplicatedStorage.Events.PlayerEvents
 
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer.PlayerGui
-
+--[[
 local Move = require(script.Move)
 --local Destroy = require(script.Destroy)
 local Active = require(script.Active)
 local PlaceObject = require(script.PlaceObject)
+
 
 local DevButtons : ScreenGui = PlayerGui:WaitForChild("DevButtons")
 
@@ -27,4 +28,4 @@ PlayerEvents.InitTycoon.OnClientEvent:Connect(function(playerData)
          PlaceObject(button, data)
      end
      DevButtons.RightFrame.Template.Visible = false
-end)
+end)]]

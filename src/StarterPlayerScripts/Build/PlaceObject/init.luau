@@ -13,8 +13,6 @@ local PlayerEvents = ReplicatedStorage.Events.PlayerEvents
 --local PlacementEvents = ReplicatedStorage.Events.PlacementEvents
 
 local LocalPlayer = Players.LocalPlayer
-
-local Object : Model = nil
 local Mouse = LocalPlayer:GetMouse()
 
 local rotation : number = 0
@@ -24,13 +22,13 @@ local basePart : Part = nil
 
 type Object = ObjectData.Object
 type InteractableObject = ObjectData.InteractableObject
-local objInfo : Object = nil
+local objectData : Object = nil
 
 local ROTATE = "Rotate"
 local QUIT = "Quit"
 local PLACE = "Place"
 
-local function handleInput(name, userInputState, input)
+local function handleInput(name, userInputState, _input)
     if userInputState == Enum.UserInputState.Begin then
         if name == ROTATE then
             rotation = rotation + math.pi/2
@@ -41,15 +39,19 @@ local function handleInput(name, userInputState, input)
             ContextActionService:UnbindAction(PLACE)
             Mouse.TargetFilter = nil
         elseif name == PLACE then
-            if not PlacementService.IsColliding(currModel) then
-                PlacementService.Place(Object, PlacementService.CalcPlacementCFrame(basePart, currModel, Mouse.Hit.p, rotation))
+            if not PlacementService.IsColliding(currModel) and PlayerService.MakePurchase(LocalPlayer, objectData.cost) then
+                PlacementService.Place(
+                    ObjectService.GetModel(objectData), -- Server model
+                    PlacementService.CalcPlacementCFrame(basePart, currModel, Mouse.Hit.p, rotation) -- Get CFrame
+            )
                 -- Check if object is interactable
-                if objInfo.state then 
+                if objectData.state then 
+                    -- Reset data 
                     local prompt = Instance.new("ProximityPrompt")
-                    prompt.ObjectText = ObjectService.GetName(objInfo)
-                    prompt.Parent = ObjectService.GetModel(objInfo)
+                    prompt.ObjectText = ObjectService.GetName(objectData)
+                    prompt.Parent = ObjectService.GetModel(objectData)
     
-                    local clone : InteractableObject = objInfo
+                    local clone : InteractableObject = objectData
                     clone.prompt = prompt
     
                     prompt.Triggered:Connect(function(trigger)
@@ -57,7 +59,6 @@ local function handleInput(name, userInputState, input)
                         success = if success then "True" else "False"
                     end)
                 end
-                handleInput(QUIT, Enum.UserInputState.Begin, nil)
             end
         end
     end
@@ -75,16 +76,15 @@ RunService.RenderStepped:Connect(function(dt)
     end
 end)
 
-return function(button : TextButton, object : table) -- Gives functionality to "Place" dev button
+return function(button : TextButton, objectName : string) -- Gives functionality to "Place" dev button
     button.Activated:Connect(function()
+        objectData = ObjectService.CreateNew(objectName, LocalPlayer)
         basePart = PlayerService.GetBasePartFromPlayer(LocalPlayer)
         Mouse.TargetFilter = basePart.BaseObjects
         placeActive = true
 
-        ContextActionService:BindAction(PLACE, handleInput, false, Enum.UserInputType.MouseButton1)
-        Object = ObjectService.GetModel(object)
-        currModel = Object:Clone()
+        ContextActionService:BindAction(PLACE, handleInput, false, Enum.UserInputType.MouseButton1, Enum.UserInputType.Touch)
+        currModel = ObjectService.GetModel(objectData):Clone()
         currModel.Parent = Mouse.TargetFilter
-        objInfo = object
     end)
 end
