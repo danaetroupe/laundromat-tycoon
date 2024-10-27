@@ -48,13 +48,6 @@ function ObjectService.GetName(data : table) : string
 end
 
 
--- CHANGE PROPERTY -------------------------------------------------------------------
--- Updates state and creates interaction to reflect state
-function ObjectService.UpdateStatus(data : table, status : string)
-    data["status"] = status
-end
-
-
 -- GAME FUNCTIONALITY ----------------------------------------------------------------
 -- Returns new data table of object name
 function ObjectService.CreateNew(name : string, player : Player) 
@@ -62,7 +55,7 @@ function ObjectService.CreateNew(name : string, player : Player)
     local data : Object = Objects.GetObject(name)
     data = table.clone(data)
     local model = ReplicatedStorage.Assets.Objects:FindFirstChild(data["assetName"], true)
-    data["model"] = ModelService.CreateOnServer(model, PlayerService.GetTempFolder(player))
+    data.model = ModelService.CreateOnServer(model, PlayerService.GetTempFolder(player))
 
     return data
 end

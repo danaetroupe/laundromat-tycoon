@@ -35,7 +35,7 @@ end
 function InventoryService.BuyItem(itemName : string, player : Player) : Object | boolean
     if isServer then
         local object = ObjectService.CreateNew(itemName, player)
-        return if PlayerService.MakePurchase(player, object.cost) then object else false
+        return if PlayerService.MakePurchase(object.cost) then object else false
     else
         return InventoryEvents.AddToInventory:InvokeServer(itemName)
     end

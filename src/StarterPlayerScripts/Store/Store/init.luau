@@ -11,6 +11,7 @@ local Objects = require(ReplicatedStorage.Data.ObjectData.Objects)
 -- Types
 type Object = ObjectData.Object
 
+
 return function(icon : Frame, iconFrame : Frame, dataFrame : Frame)
     local names = Objects.GetObjectNames()
     for _, name in names do

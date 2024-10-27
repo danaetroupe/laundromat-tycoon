@@ -2,10 +2,6 @@
     "ClassName" : "Folder",
     "Children": [
         {
-            "Name": "InitPlacement",
-            "ClassName": "RemoteFunction"
-        },
-        {
             "Name": "InvokePlacement",
             "ClassName": "RemoteEvent"
         }

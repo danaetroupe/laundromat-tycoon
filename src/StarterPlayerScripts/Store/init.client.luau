@@ -2,10 +2,6 @@ local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
 local PlayerGui = LocalPlayer.PlayerGui
-local StoreGui : ScreenGui = PlayerGui:WaitForChild("Store")
-
-local Toggle = require(script.Toggle)
-local Store = require(script.Store)
 
 --[[
 

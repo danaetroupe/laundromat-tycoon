@@ -9,6 +9,7 @@ local RunService = game:GetService("RunService")
 local ToolService = require(ReplicatedStorage.Services.ToolService)
 local PlayerData = require(ReplicatedStorage.Data.PlayerData)
 local ToolData = require(ReplicatedStorage.Data.ToolData)
+local MobileService = require(ReplicatedStorage.Services.MobileService)
 
 local PlayerEvents = ReplicatedStorage.Events.PlayerEvents
 
@@ -23,16 +24,57 @@ local isServer = RunService:IsServer()
 local LocalPlayer = if not isServer then Players.LocalPlayer else nil
 local PlayerService = {}
 
--- Reset when player leaves
-function PlayerService.Reset(data : PlayerData) : nil
-    data["claim"].Transparency = 0
+-- GETTERS ------------------------------------------------------------------------------------
+-- Get table of player data
+function PlayerService.GetPlayerData(player : Player) : PlayerData 
+    return if isServer then PlayerEvents.GetServerPlayerData:Invoke(player) else PlayerEvents.GetPlayerData:InvokeServer(player)
 end
 
--- Get the player claim part
-function PlayerService.GetClaim(data : PlayerData) : Part
-    return data["claim"]
+-- Returns base part
+function PlayerService.GetBasePartFromPlayer(player : Player) : Part
+    return PlayerService.GetPlayerData(player).tycoon.Base
 end
 
+-- Returns base part from player data (use on server)
+function PlayerService.GetBasePartFromData(data : PlayerData) : Part
+    return data.tycoon.Base
+end
+
+-- Gets entry point of tycoon for routing purposes
+function PlayerService.GetStartPoint(player : Player) : Part
+    return PlayerService.GetPlayerData(player)["tycoon"].Entry
+end
+
+function PlayerService.GetEndPoint(player : Player) : Part
+    return PlayerService.GetPlayerData(player)["tycoon"].Exit
+end
+
+-- Get temp folder for storage
+function PlayerService.GetTempFolder(player : Player) : Folder
+    return PlayerService.GetPlayerData(player)["temp"]
+end
+
+-- Request current player key (typically followed by a request to clear key)
+function PlayerService.GetKey(player : Player) : ToolInfo
+    return PlayerService.GetPlayerData(player).key
+end
+
+-- Get spawn rate
+function PlayerService.GetSpawnRate(player : Player) : number
+    return PlayerService.GetPlayerData(player)["spawn_rate"]
+end
+
+-- Get tycoon model
+function  PlayerService.GetTycoon(player : Player) : Model
+    return PlayerService.GetPlayerData(player)["tycoon"]
+end
+
+-- Get player money
+function PlayerService.GetMoney(player : Player) : number
+    return PlayerService.GetPlayerData(player)["money"]
+end
+
+-- GAME FUNCTIONALITY -------------------------------------------------------------------------
 -- Assigns tycoon to player
 function PlayerService.AssignToPlayer(player : Player, tycoon : Model) : PlayerData 
     local data : PlayerData = table.clone(PlayerData)
@@ -64,24 +106,9 @@ function PlayerService.AssignToPlayer(player : Player, tycoon : Model) : PlayerD
     return data
 end
 
--- Get table of player data
-function PlayerService.GetPlayerData(player : Player) : PlayerData 
-    return if isServer then PlayerEvents.GetServerPlayerData:Invoke(player) else PlayerEvents.GetPlayerData:InvokeServer(player)
-end
-
--- Returns base part from player value (use on client)
-function PlayerService.GetBasePartFromPlayer(player : Player) : Part
-    return PlayerService.GetPlayerData(player)["tycoon"].Base
-end
-
--- Returns base part from player data (use on server)
-function PlayerService.GetBasePartFromData(data : PlayerData) : Part
-    return data["tycoon"].Base
-end
-
 -- Inserts given model into baseobjects
 function PlayerService.StoreObject(data : PlayerData, model : Model)
-    table.insert(data["baseObjects"], model)
+    table.insert(data.baseObjects, model)
 end
 
 -- Returns boolean to specify is part is in the baseObjects table
@@ -102,20 +129,6 @@ function PlayerService.ToggleActive(data : PlayerData) : boolean
     end
 end
 
--- Gets entry point of tycoon for routing purposes
-function PlayerService.GetStartPoint(player : Player) : Part
-    return PlayerService.GetPlayerData(player)["tycoon"].Entry
-end
-
-function PlayerService.GetEndPoint(player : Player) : Part
-    return PlayerService.GetPlayerData(player)["tycoon"].Exit
-end
-
--- Get temp folder for storage
-function PlayerService.GetTempFolder(player : Player) : Folder
-    return PlayerService.GetPlayerData(player)["temp"]
-end
-
 -- Move item into temp storage
 function PlayerService.MoveToTemp(object, serverData) : nil
     if isServer then
@@ -125,11 +138,6 @@ function PlayerService.MoveToTemp(object, serverData) : nil
     end
 end
 
--- Request current player key (typically followed by a request to clear key)
-function PlayerService.RequestKey(player : Player) : ToolInfo
-    return PlayerService.GetPlayerData(player)["key"]
-end
-
 -- Assign key (typically a tool)
 function PlayerService.AssignKey(key : Tool, serverData : PlayerInfo) : boolean
     if isServer then
@@ -137,14 +145,8 @@ function PlayerService.AssignKey(key : Tool, serverData : PlayerInfo) : boolean
         serverData["key"] = key
         return true
     else
-        local PlayerGui = LocalPlayer.PlayerGui
-        local Mobile = PlayerGui:FindFirstChild("Mobile")
         ContextActionService:BindAction(SETDOWN, PlayerService._handleInput, true, Enum.KeyCode.P)
-        local button = ContextActionService:GetButton(SETDOWN)
-        if button then
-            button.Image = placeImg
-            button.Parent = Mobile.ActionButtons
-        end
+        MobileService.CreateMobileButton(SETDOWN, placeImg)
         return PlayerEvents.ExecuteOnServer:InvokeServer("AssignKey", key)
     end
 end
@@ -161,16 +163,6 @@ end
 
 function PlayerService.MoveToNPCFolder(player : Player, model : Model) : nil
     model.Parent = PlayerService.GetPlayerData(player)["tycoon"]["NPCs"]
-end
-
--- Get spawn rate
-function PlayerService.GetSpawnRate(player : Player) : number
-    return PlayerService.GetPlayerData(player)["spawn_rate"]
-end
-
--- Get tycoon model
-function  PlayerService.GetTycoon(player : Player) : Model
-    return PlayerService.GetPlayerData(player)["tycoon"]
 end
 
 -- Update leaderstats value
@@ -190,23 +182,19 @@ function PlayerService.AddMoney(data : PlayerData) : nil
     end
 end
 
--- Get player money
-function PlayerService.GetMoney(player : Player) : number
-    return PlayerService.GetPlayerData(player)["money"]
-end
-
 -- Checks if player can purchase item, and if yes, then makes purchase
-function PlayerService.MakePurchase(player : Player, cost : number) : boolean
-    local data = PlayerService.GetPlayerData(player)
-
-    if data.money >= cost then
-        local newAmt = data.money - cost
-        PlayerEvents.ChangeValue:Fire(data.player, "money", newAmt)
-        PlayerService._UpdateLeaderstats(data.player, newAmt)
-        return true
+function PlayerService.MakePurchase(cost : number, data : PlayerData) : boolean
+    if isServer then
+        if data.money >= cost then
+            local newAmt = data.money - cost
+            PlayerEvents.ChangeValue:Fire(data.player, "money", newAmt)
+            PlayerService._UpdateLeaderstats(data.player, newAmt)
+            return true
+        end
+        return false
+    else
+        return PlayerEvents.ExecuteOnServer:InvokeServer("MakePurchase", cost)
     end
-    
-    return false
 end
 
 function PlayerService._isWithinBounds(position)
@@ -228,7 +216,7 @@ function PlayerService._handleInput(name, userInputState, input)
         local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
         local lookVector = character.HumanoidRootPart.CFrame.LookVector
         local position = character.HumanoidRootPart.Position + (lookVector * 2)
-        local key = PlayerService.RequestKey(LocalPlayer)
+        local key = PlayerService.GetKey(LocalPlayer)
         --  Check if valid
         if key and PlayerService._isWithinBounds(position) then
             PlayerService.MoveToWorld(key, position)
@@ -250,10 +238,13 @@ function PlayerService.MoveToWorld(tool : ToolInfo, position : Vector3) : nil
         prompt.ActionText = "Pick Up"
         -- If prompt triggered, then reassign key and destroy prompt
         prompt.Triggered:Connect(function(player)
-            ToolService._ReEnableTool(tool)
-            ToolService.EquipExistingTool(player,tool)
-            PlayerService.AssignKey(tool)
-            prompt:Destroy()
+            -- Check to make sure player doesn't have existing key
+            if not PlayerService.GetKey(LocalPlayer) then
+                ToolService._ReEnableTool(tool)
+                ToolService.EquipExistingTool(player,tool)
+                PlayerService.AssignKey(tool)
+                prompt:Destroy()
+            end
         end)
         PlayerEvents.ExecuteOnServer:InvokeServer("MoveToWorld", tool, position)
     end

@@ -6,10 +6,10 @@ local LocalPlayer = Players.LocalPlayer
 
 local PlayerGui = LocalPlayer.PlayerGui
 local PanelsGui : ScreenGui = PlayerGui:WaitForChild("Panels")
-local Build : Frame = PanelsGui.Build
+local BuildPanel : Frame = PanelsGui.Build
 
-local Store : ScrollingFrame = Build:FindFirstChild("Store")
-local Inventory : ScrollingFrame = Build:FindFirstChild("Inventory")
+local Store : ScrollingFrame = BuildPanel:FindFirstChild("Store")
+local Inventory : ScrollingFrame = BuildPanel:FindFirstChild("Inventory")
 
 local PlaceObject = require(script.PlaceObject)
 
@@ -20,7 +20,7 @@ local currState : BuildState = "Store"
 
 -- Clear UI page for reset
 local function clear()
-    for _, icon in Build.Store:GetChildren() do
+    for _, icon in BuildPanel.Store:GetChildren() do
         if icon:IsA("ImageButton") then
             icon:Destroy()
         end
@@ -33,11 +33,15 @@ local function showStore()
     for _, objectName in Objects.GetObjectNames() do
         local button = Icon:Clone()
         button.Parent = Store
-        -- todo: display image
+        --[[
+        todo: implement image
+        local image = objects.GetProperty(objectName, "image")
+        button.Image =  if image then image else button.Image
+        ]]
         button.Top.Text = Objects.GetProperty(objectName, "name")
         local cost = Objects.GetProperty(objectName, "cost")
         button.Display.Text = if cost then "$"..cost else "$ERR"
-        PlaceObject(button, objectName)
+        PlaceObject(button, objectName, BuildPanel)
      end
 end
 
@@ -46,9 +50,11 @@ local function showInventory()
 
 end
 
-Build.Changed:Connect(function(property)
+BuildPanel.Changed:Connect(function(property)
     if property == "Visible" then
         showStore()
     end
 end)
 
+
+-- TODO: Close store menu while placing object... ;) 

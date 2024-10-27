@@ -12,6 +12,7 @@ Toggle(HomeGui.Left.Buttons, PanelsGui)
 
 -- Show player money value
 local moneyVal : IntValue = LocalPlayer:WaitForChild("leaderstats"):WaitForChild("Money")
+HomeGui.Right.Coins.Text = moneyVal.Value
 moneyVal.Changed:Connect(function(value)
     HomeGui.Right.Coins.Text = value
 end)
