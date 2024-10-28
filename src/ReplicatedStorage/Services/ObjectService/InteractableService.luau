@@ -1,18 +1,11 @@
 -- Services
-local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
-local TextService = game:GetService("TextService")
 
 -- Modules
-local PlayerService = require(ReplicatedStorage.Services.PlayerService)
-local ModelService = require(ReplicatedStorage.Util.ModelService)
-local ToolService = require(ReplicatedStorage.Services.ToolService)
 
 -- Data
 local ObjectData = require(ReplicatedStorage.Data.ObjectData)
 local ToolData = require(ReplicatedStorage.Data.ToolData)
-local Objects = require(ReplicatedStorage.Data.ObjectData.Objects)
 
 -- Events
 
@@ -30,10 +23,6 @@ local ROTATION_SPEED = 360
 
 
 local InteractableService = {}
-
-function InteractableService.DoInteraction(object : Interactable)
-    
-end
 
 local function timer(object : Interactable) 
     object.prompt.Enabled = false

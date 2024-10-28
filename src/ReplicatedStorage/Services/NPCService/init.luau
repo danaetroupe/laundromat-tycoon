@@ -108,12 +108,12 @@ function NPCService.GivePrompt(npc : NPC)
                     ToolService.Destroy(tool)
                 end
             elseif state == "PickUp" and key and keyState == "Ready" then
+                PlayerService.AddMoney(player)
+                PlayerService.ClearKey()
                 ToolService.Destroy(key)
                 NPCService.WalkOut(npc, true)
                 NPCEvents.UpdateLine:FireServer("pickup")
                 -- TODO: record satsifaction and whatnot... what events happen when they die
-                PlayerService.AddMoney(player)
-                PlayerService.ClearKey()
             end 
         end)
     end

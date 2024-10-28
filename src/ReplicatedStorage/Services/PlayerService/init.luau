@@ -7,13 +7,13 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local ToolService = require(ReplicatedStorage.Services.ToolService)
-local PlayerData = require(ReplicatedStorage.Data.PlayerData)
+local PlayerDataModule = require(ReplicatedStorage.Data.PlayerData)
 local ToolData = require(ReplicatedStorage.Data.ToolData)
 local MobileService = require(ReplicatedStorage.Services.MobileService)
 
 local PlayerEvents = ReplicatedStorage.Events.PlayerEvents
 
-type PlayerData = PlayerData.PlayerData
+type PlayerData = PlayerDataModule.PlayerData
 type ToolInfo = ToolData.ToolInfo
 
 local SETDOWN = "SETDOWN"
@@ -77,7 +77,7 @@ end
 -- GAME FUNCTIONALITY -------------------------------------------------------------------------
 -- Assigns tycoon to player
 function PlayerService.AssignToPlayer(player : Player, tycoon : Model) : PlayerData 
-    local data : PlayerData = table.clone(PlayerData)
+    local data : PlayerData = table.clone(PlayerDataModule)
     data["player"] = player
     data["tycoon"] = tycoon
     PlayerEvents.ActiveToggled:Fire(data["player"], data["active"])
@@ -139,7 +139,7 @@ function PlayerService.MoveToTemp(object, serverData) : nil
 end
 
 -- Assign key (typically a tool)
-function PlayerService.AssignKey(key : Tool, serverData : PlayerInfo) : boolean
+function PlayerService.AssignKey(key : Tool, serverData : PlayerData) : boolean
     if isServer then
         if serverData["key"] then return false end
         serverData["key"] = key
