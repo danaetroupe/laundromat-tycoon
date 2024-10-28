@@ -95,9 +95,9 @@ function NPCService.GivePrompt(npc : NPC)
         prompt.Parent = npc.character
         prompt.Triggered:Connect(function(player)
             local state = npc.state
-            local key = PlayerService.RequestKey(player)
+            local key = PlayerService.GetKey(player)
             local keyState = if key then ToolService.GetState(key) else nil
-            if state == "DropOff" and not PlayerService.RequestKey(player) then
+            if state == "DropOff" and not PlayerService.GetKey(player) then
                 local tool = ToolService.GiveTool(player, "laundrybasket", npc)
                 local success = PlayerService.AssignKey(tool)
                 if success then 

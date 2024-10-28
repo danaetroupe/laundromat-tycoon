@@ -8,6 +8,8 @@ local PlayerService = require(ReplicatedStorage.Services.PlayerService)
 local PlacementService = require(ReplicatedStorage.Util.PlacementService)
 local ObjectService = require(ReplicatedStorage.Services.ObjectService)
 
+local Spr = require(ReplicatedStorage.Packages.Spr)
+
 local ObjectData = require(ReplicatedStorage.Data.ObjectData)
 
 type Object = ObjectData.Object
@@ -19,16 +21,22 @@ local MobileButtons = ReplicatedStorage.Assets.UI.ObjectEditor_Mobile
 local Mouse = LocalPlayer:GetMouse()
 local Camera = workspace.CurrentCamera
 
+local objName : string = nil
 local rotation : number = 0
 local placeActive : boolean = false
 local currModel : Model = nil
 local basePart : Part = nil
 local objectData : Object = nil
+local buildPanel : Frame = nil
 
 local ROTATE = "Rotate"
 local QUIT = "Quit"
 local PLACE = "Place"
 local MOUSEUP = "TouchEnded"
+
+local function createNewObj()
+    objectData = ObjectService.CreateNew(objName, LocalPlayer)
+end
 
 local function handleInput(name, userInputState, _input)
     if userInputState ~= Enum.UserInputState.Begin then return end
@@ -48,6 +56,13 @@ local function handleInput(name, userInputState, _input)
         ContextActionService:UnbindAction(ROTATE)
         ContextActionService:UnbindAction(QUIT)
         Mouse.TargetFilter = nil
+
+        -- Reopen panel if it exists 
+        if buildPanel then
+            Spr.target(buildPanel.Panel, 1, 1, {
+                Position = UDim2.fromScale(0, 0)
+            })
+        end
     -- Handle placement
     elseif name == PLACE and not PlacementService.IsColliding(currModel) and PlayerService.MakePurchase(objectData.cost) then
         local model = ObjectService.GetModel(objectData)
@@ -67,6 +82,9 @@ local function handleInput(name, userInputState, _input)
             local success = ObjectService.RunCycle(interactObjectData)
             success = if success then "True" else "False"
         end)
+        
+        -- Create new object
+        createNewObj()
     elseif name == MOUSEUP then
         placeActive = false
         ContextActionService:UnbindAction(MOUSEUP)
@@ -83,9 +101,9 @@ RunService.RenderStepped:Connect(function(dt)
 end)
 
 -- Handle mobile input
-local function showButtons(keybinds : Folder)
+local function showButtons()
     local frame : Frame = MobileButtons:Clone()
-    frame.Parent = keybinds
+    frame.Parent = buildPanel.Keybinds
 
     -- Bind position to object position
     RunService:BindToRenderStep("FrameMovement", 0, function()
@@ -107,11 +125,13 @@ local function showButtons(keybinds : Folder)
     -- Move press determines if placing is active
     moveButton.MouseButton1Down:Connect(function()
         placeActive = true
-        local connection
-        connection = Mouse.Button1Up:Connect(function()
+    end)
+
+    UserInputService.InputEnded:Connect(function(input, _gameProcessedEvent)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            print(input.UserInputType)
             placeActive = false
-            connection:Disconnect()
-        end)
+        end
     end)
 
     -- Bind button to rotate function
@@ -132,17 +152,19 @@ local function showButtons(keybinds : Folder)
 end
 
 
-return function(button : TextButton, objectName : string, buildPanel : Frame) -- Gives functionality to "Place" dev button
+return function(button : TextButton, objectName : string, panel : Frame) -- Gives functionality to "Place" dev button
     button.Activated:Connect(function()
         -- Delete existing values
         handleInput(QUIT, Enum.UserInputState.Begin)
         -- Create new object
-        objectData = ObjectService.CreateNew(objectName, LocalPlayer)
+        objName = objectName
+        createNewObj()
         basePart = PlayerService.GetBasePartFromPlayer(LocalPlayer)
         Mouse.TargetFilter = basePart.BaseObjects
 
         currModel = objectData.model:Clone()
         currModel.Parent = Mouse.TargetFilter
+        buildPanel = panel
 
         -- Bind actions 
         ContextActionService:BindAction(ROTATE, handleInput, false, Enum.KeyCode.R)
@@ -155,10 +177,15 @@ return function(button : TextButton, objectName : string, buildPanel : Frame) --
             local cf = PlacementService.CalcPlacementCFrame(basePart, currModel, LocalPlayer.Character.HumanoidRootPart.CFrame.Position + Vector3.new(4, 0, 0), rotation)
             currModel:PivotTo(cf)
             -- Show buttons
-            showButtons(buildPanel.Keybinds)
+            showButtons()
         else
             -- Only set placeactive always true on computer
             placeActive = true
         end
+
+        -- Close build panel
+        Spr.target(buildPanel.Panel, 1, 1, {
+            Position = UDim2.fromScale(0, -1)
+        })
     end)
 end

@@ -64,7 +64,7 @@ end
 function ObjectService.RunCycle(object : Interactable) : boolean
     -- Check for player key
     local objectState : MachineState = object.state
-    local key = PlayerService.RequestKey(LocalPlayer)
+    local key = PlayerService.GetKey(LocalPlayer)
     local keyState = if key then key.state else nil
 
     -- Check for machine in progress.. do nothing

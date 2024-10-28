@@ -6,7 +6,8 @@ local LocalPlayer = Players.LocalPlayer
 
 local PlayerGui = LocalPlayer.PlayerGui
 local PanelsGui : ScreenGui = PlayerGui:WaitForChild("Panels")
-local BuildPanel : Frame = PanelsGui.Build
+local BuildFrame : Frame = PanelsGui.Build
+local BuildPanel = BuildFrame:FindFirstChild("Panel")
 
 local Store : ScrollingFrame = BuildPanel:FindFirstChild("Store")
 local Inventory : ScrollingFrame = BuildPanel:FindFirstChild("Inventory")
@@ -14,9 +15,6 @@ local Inventory : ScrollingFrame = BuildPanel:FindFirstChild("Inventory")
 local PlaceObject = require(script.PlaceObject)
 
 local Icon = ReplicatedStorage.Assets.UI:WaitForChild("Icon")
-
-type BuildState = "Store" | "Inventory"
-local currState : BuildState = "Store" 
 
 -- Clear UI page for reset
 local function clear()
@@ -29,8 +27,8 @@ end
 
 local function showStore()
     clear()
-    local objects = Objects.GetAllObjects()
     for _, objectName in Objects.GetObjectNames() do
+        print(objectName)
         local button = Icon:Clone()
         button.Parent = Store
         --[[
@@ -41,7 +39,7 @@ local function showStore()
         button.Top.Text = Objects.GetProperty(objectName, "name")
         local cost = Objects.GetProperty(objectName, "cost")
         button.Display.Text = if cost then "$"..cost else "$ERR"
-        PlaceObject(button, objectName, BuildPanel)
+        PlaceObject(button, objectName, BuildFrame)
      end
 end
 
@@ -50,11 +48,8 @@ local function showInventory()
 
 end
 
-BuildPanel.Changed:Connect(function(property)
+BuildFrame.Changed:Connect(function(property)
     if property == "Visible" then
         showStore()
     end
 end)
-
-
--- TODO: Close store menu while placing object... ;) 
