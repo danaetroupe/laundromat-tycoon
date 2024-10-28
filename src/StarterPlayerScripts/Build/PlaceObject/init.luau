@@ -35,6 +35,8 @@ local function handleInput(name, userInputState, _input)
     -- Handle rotations
     if name == ROTATE then
         rotation = rotation + math.pi/2
+        local cf = PlacementService.CalcPlacementCFrame(basePart, currModel, currModel.PrimaryPart.CFrame.Position, rotation)
+        currModel:PivotTo(cf)
     -- Exit placement mode
     elseif name == QUIT then
         placeActive = false
