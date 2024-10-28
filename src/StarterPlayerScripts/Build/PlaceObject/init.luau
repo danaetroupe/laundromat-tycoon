@@ -62,6 +62,10 @@ local function handleInput(name, userInputState, _input)
             Spr.target(buildPanel.Panel, 1, 1, {
                 Position = UDim2.fromScale(0, 0)
             })
+             -- Hide keybinds
+            Spr.target(buildPanel.Keybinds.ObjectEditor, 1, 1, {
+                    Position = UDim2.fromScale(0, 0)
+            })
         end
     -- Handle placement
     elseif name == PLACE and not PlacementService.IsColliding(currModel) and PlayerService.MakePurchase(objectData.cost) then
@@ -181,6 +185,11 @@ return function(button : TextButton, objectName : string, panel : Frame) -- Give
         else
             -- Only set placeactive always true on computer
             placeActive = true
+            -- Show keybinds
+            local keybindPanel : Frame = panel.Keybinds.ObjectEditor
+            Spr.target(keybindPanel, 1, 1, {
+                Position = UDim2.fromScale(0, 0)
+            })
         end
 
         -- Close build panel
