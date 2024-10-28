@@ -210,7 +210,7 @@ function PlayerService._isWithinBounds(position)
     return position.X >= xMin and position.X <= xMax and position.Z >= zMin and position.Z <= zMax
 end
 
-function PlayerService._handleInput(name, userInputState, input)
+function PlayerService._handleInput(name, userInputState, _input)
     if userInputState == Enum.UserInputState.Begin and name == SETDOWN then
         -- Get player key and position
         local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
