@@ -63,8 +63,8 @@ local function handleInput(name, userInputState, _input)
                 Position = UDim2.fromScale(0, 0)
             })
              -- Hide keybinds
-            Spr.target(buildPanel.Keybinds.ObjectEditor, 1, 1, {
-                    Position = UDim2.fromScale(0, 0)
+            Spr.target(buildPanel.Keybinds.Buy, 1, 1, {
+                    Position = UDim2.fromScale(-0.1, 0.5)
             })
         end
     -- Handle placement
@@ -186,9 +186,9 @@ return function(button : TextButton, objectName : string, panel : Frame) -- Give
             -- Only set placeactive always true on computer
             placeActive = true
             -- Show keybinds
-            local keybindPanel : Frame = panel.Keybinds.ObjectEditor
+            local keybindPanel : Frame = panel.Keybinds.Buy
             Spr.target(keybindPanel, 1, 1, {
-                Position = UDim2.fromScale(0, 0)
+                Position = UDim2.fromScale(0, 0.5)
             })
         end
 

@@ -21,8 +21,17 @@ local function Init() : nil -- Initalize service
             if player and not PlayerInfo[player] then -- assign tycoon to player
                 claim.Transparency = 1
                 claim.CanCollide = false
+                claim.CanTouch = false
                 PlayerInfo[player] = PlayerService.AssignToPlayer(player, tycoon)
                 PlacementService.Init(tycoon.Base)
+                -- If player leaves, reset their data
+                Players.PlayerRemoving:Connect(function(plr)
+                    if player ~= plr then return end
+                    claim.Transparency = 1
+                    claim.CanCollide = false
+                    claim.CanTouch = false
+                    PlayerInfo[player] = nil
+                end)
             end
         end)
     end
@@ -41,10 +50,6 @@ PlacementEvents.InvokePlacement.OnServerEvent:Connect(function(player : Player, 
         PlayerService.StoreObject(data, model)
         PlacementService.Place(model, cf, PlayerService.GetBasePartFromData(PlayerInfo[player]))
     end
-end)
-
-Players.PlayerRemoving:Connect(function(plr) -- Clear player data 
-    PlayerInfo[plr] = nil
 end)
 
 PlayerEvents.GetServerPlayerData.OnInvoke = function(player : Player)
