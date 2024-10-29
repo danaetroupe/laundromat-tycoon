@@ -7,3 +7,4 @@ realm = "shared"
 [dependencies]
 testez = "roblox/testez@0.4.1"
 cmdr = "evaera/cmdr@1.12.0"
+ui-labs = "pepeeltoro41/ui-labs@2.3.0"

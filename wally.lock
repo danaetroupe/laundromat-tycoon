@@ -5,11 +5,16 @@ registry = "test"
 [[package]]
 name = "danae/npc"
 version = "0.1.0"
-dependencies = [["cmdr", "evaera/cmdr@1.12.0"], ["testez", "roblox/testez@0.4.1"]]
+dependencies = [["cmdr", "evaera/cmdr@1.12.0"], ["testez", "roblox/testez@0.4.1"], ["ui-labs", "pepeeltoro41/ui-labs@2.3.0"]]
 
 [[package]]
 name = "evaera/cmdr"
 version = "1.12.0"
+dependencies = []
+
+[[package]]
+name = "pepeeltoro41/ui-labs"
+version = "2.3.0"
 dependencies = []
 
 [[package]]
