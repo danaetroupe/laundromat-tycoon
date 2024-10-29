@@ -11,7 +11,8 @@ export type PlayerData = {
 	active: boolean,
 	key: ToolInfo?,
 	spawn_rate : number,
-	profit: number
+	profit: number,
+	isBuilding : boolean
 }
 
 local info : PlayerData = {
@@ -22,7 +23,8 @@ local info : PlayerData = {
 	active = true,
 	key = nil,
 	spawn_rate = 30,
-	profit = 10
+	profit = 10,
+	isBuilding = false
 }
 
 return info

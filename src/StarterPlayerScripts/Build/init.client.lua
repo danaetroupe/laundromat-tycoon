@@ -1,5 +1,8 @@
+local ContextActionService = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local PlayerService = require(ReplicatedStorage.Services.PlayerService)
 
 local Objects = require(ReplicatedStorage.Data.ObjectData.Objects)
 local LocalPlayer = Players.LocalPlayer
@@ -15,6 +18,9 @@ local Inventory : ScrollingFrame = BuildPanel:FindFirstChild("Inventory")
 local PlaceObject = require(script.PlaceObject)
 
 local Icon = ReplicatedStorage.Assets.UI:WaitForChild("Icon")
+local Mouse = LocalPlayer:GetMouse()
+
+local isBuilding = false
 
 -- Clear UI page for reset
 local function clear()
@@ -28,7 +34,6 @@ end
 local function showStore()
     clear()
     for _, objectName in Objects.GetObjectNames() do
-        print(objectName)
         local button = Icon:Clone()
         button.Parent = Store
         --[[
@@ -49,7 +54,11 @@ local function showInventory()
 end
 
 BuildFrame.Changed:Connect(function(property)
-    if property == "Visible" then
+    isBuilding = property == "Visible"
+    -- Set player state
+    PlayerService.SetBuildState(isBuilding)
+    if isBuilding then 
+        -- Reset to store when opening and closing panel
         showStore()
     end
 end)

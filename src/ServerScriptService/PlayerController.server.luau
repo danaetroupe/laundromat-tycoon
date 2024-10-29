@@ -63,6 +63,6 @@ end)
 -- Execute function on server
 PlayerEvents.ExecuteOnServer.OnServerInvoke = function(player : Player, func : string, ...)
     if PlayerInfo[player] then
-        return if ... then PlayerService[func](..., PlayerInfo[player]) else PlayerService[func](PlayerInfo[player])
+        return if ... ~= nil then PlayerService[func](..., PlayerInfo[player]) else PlayerService[func](PlayerInfo[player])
     end
 end

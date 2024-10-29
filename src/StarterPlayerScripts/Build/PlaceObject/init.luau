@@ -73,21 +73,21 @@ local function handleInput(name, userInputState, _input)
         --local cf = PlacementService.CalcPlacementCFrame(basePart, currModel, Mouse.Hit.p, rotation)
         PlacementService.Place(model, currModel.PrimaryPart.CFrame, basePart)
         -- Check if object is interactable
-        if not objectData.state then return end
-        -- Reset data 
-        local prompt = Instance.new("ProximityPrompt")
-        prompt.ObjectText = ObjectService.GetName(objectData)
-        prompt.Parent = objectData.model
-        
-        local interactObjectData : InteractableObject = objectData
-        interactObjectData.prompt = prompt
-
-        prompt.Triggered:Connect(function(trigger)
-            local success = ObjectService.RunCycle(interactObjectData)
-            success = if success then "True" else "False"
-        end)
-        
-        -- Create new object
+        if objectData.state then 
+            -- cREATE PROXIMITY PROMPT
+            local prompt = Instance.new("ProximityPrompt")
+            prompt.ObjectText = ObjectService.GetName(objectData)
+            prompt.Parent = objectData.model
+            
+            local interactObjectData : InteractableObject = objectData
+            interactObjectData.prompt = prompt
+    
+            prompt.Triggered:Connect(function(trigger)
+                local success = ObjectService.RunCycle(interactObjectData)
+                success = if success then "True" else "False"
+            end)
+        end
+        -- Reset data/create new object
         createNewObj()
     elseif name == MOUSEUP then
         placeActive = false

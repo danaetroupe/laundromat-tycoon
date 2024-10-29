@@ -57,6 +57,8 @@ function ObjectService.CreateNew(name : string, player : Player)
     local model = ReplicatedStorage.Assets.Objects:FindFirstChild(data["assetName"], true)
     data.model = ModelService.CreateOnServer(model, PlayerService.GetTempFolder(player))
 
+    --
+
     return data
 end
 
@@ -69,18 +71,20 @@ function ObjectService.RunCycle(object : Interactable) : boolean
 
     -- Check for machine in progress.. do nothing
     if objectState == "In Progress" then
-        print("Machine in progress.")
         return false
     -- If machine is empty, check for expectedLaundry state and load machine
     elseif objectState == "Empty" then
         if key and keyState == object.expectedLaundryState then -- if empty and laundry dirty, start cycle
-            print('Starting '.. object.name)
             object["state"] = "In Progress"
             ToolService.DestroyModel(key)
             PlayerService.ClearKey()
             InteractableService.Display(object)
         else
-            print("laundry does not load in ".. object.name)
+            if keyState then
+                print(keyState.. " laundry does not go in ".. object.name)
+            else
+                print("Need ".. object.expectedLaundryState " laundry for ".. object.name)
+            end
             return false
         end
     -- If complete, make sure no key exists 

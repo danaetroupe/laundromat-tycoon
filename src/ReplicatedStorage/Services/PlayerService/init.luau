@@ -74,6 +74,11 @@ function PlayerService.GetMoney(player : Player) : number
     return PlayerService.GetPlayerData(player)["money"]
 end
 
+-- Get building status
+function PlayerService.GetIsBuilding(player:Player) : boolean
+    return PlayerService.GetPlayerData(player)["isBuilding"]
+end
+
 -- GAME FUNCTIONALITY -------------------------------------------------------------------------
 -- Assigns tycoon to player
 function PlayerService.AssignToPlayer(player : Player, tycoon : Model) : PlayerData 
@@ -91,7 +96,7 @@ function PlayerService.AssignToPlayer(player : Player, tycoon : Model) : PlayerD
         end
     end)
     data["temp"] = folder
-    
+
     PlayerEvents.InitTycoon:FireClient(player, data)
 
     -- Initalize leaderboard
@@ -247,6 +252,15 @@ function PlayerService.MoveToWorld(tool : ToolInfo, position : Vector3) : nil
             end
         end)
         PlayerEvents.ExecuteOnServer:InvokeServer("MoveToWorld", tool, position)
+    end
+end
+
+-- Toggle via client
+function PlayerService.SetBuildState(status : boolean, playerdata : PlayerData?)
+    if isServer then
+        PlayerEvents.ChangeValue:Fire(playerdata.player, "isBuilding", status)
+    else
+        PlayerEvents.ExecuteOnServer:InvokeServer("SetBuildState", status)
     end
 end
 
