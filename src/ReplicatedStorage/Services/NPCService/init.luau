@@ -101,6 +101,7 @@ function NPCService.GivePrompt(npc : NPC)
                 local tool = ToolService.GiveTool(player, "laundrybasket", npc)
                 local success = PlayerService.AssignKey(tool)
                 if success then 
+                    NPCService.ChangeState(npc, "Waiting")
                     NPCService.WalkOut(npc, false)
                     NPCEvents.UpdateLine:FireServer("dropoff")
                     prompt:Destroy()
