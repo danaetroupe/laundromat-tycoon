@@ -1,7 +1,10 @@
 -- Services
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 -- Modules
+local PlayerService = require(ReplicatedStorage.Services.PlayerService)
+local ToolService = require(ReplicatedStorage.Services.ToolService)
 
 -- Data
 local ObjectData = require(ReplicatedStorage.Data.ObjectData)
@@ -19,6 +22,7 @@ type LaundryState = ToolData.LaundryState
 -- Constants
 local washingDecal = "rbxassetid://136582297962433"
 local clothesDecal = "rbxassetid://71280947937677"
+local LocalPlayer = Players.LocalPlayer
 local ROTATION_SPEED = 360
 
 
@@ -65,6 +69,61 @@ function InteractableService.ClearDisplay(object)
 
     display.Part.Decal.Transparency = 1
     display.DisplayGui.TextLabel.Text = ""
+end
+
+function InteractableService.RunCycle(object : Interactable) : boolean
+    -- Check for player key
+    local objectState : MachineState = object.state
+    local key = PlayerService.GetKey(LocalPlayer)
+    local keyState = if key then key.state else nil
+
+    -- Check for machine in progress.. do nothing
+    if objectState == "In Progress" then
+        return false
+    -- If machine is empty, check for expectedLaundry state and load machine
+    elseif objectState == "Empty" then
+        if key and keyState == object.expectedLaundryState then -- if empty and laundry dirty, start cycle
+            object["state"] = "In Progress"
+            ToolService.DestroyModel(key)
+            PlayerService.ClearKey()
+            InteractableService.Display(object)
+        else
+            if keyState then
+                print(keyState.. " laundry does not go in ".. object.name)
+            else
+                print("Need ".. object.expectedLaundryState " laundry for ".. object.name)
+            end
+            return false
+        end
+    -- If complete, make sure no key exists 
+    elseif objectState == "Complete" then
+        if not key then
+            InteractableService.ClearDisplay(object)
+            key = ToolService.GiveTool(LocalPlayer, "laundrybasket")
+            ToolService.ChangeState(key, object.nextState)
+            object["state"] = "Empty"
+            return PlayerService.AssignKey(key)
+        else
+            print("Cannot load laundry with existing key.")
+            return false
+        end
+    else
+        error("Object state not recognized: ".. objectState)
+        return false
+    end
+    return true
+end
+
+-- Create proximity prompt
+function InteractableService.CreatePrompt(object : Interactable)
+    object.prompt = Instance.new("ProximityPrompt")
+    object.prompt.ObjectText = object.name
+    object.prompt.Parent = object.model
+    
+
+    object.prompt.Triggered:Connect(function(trigger)
+        InteractableService.RunCycle(object)
+    end)
 end
 
 return InteractableService

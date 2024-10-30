@@ -7,6 +7,7 @@ local UserInputService = game:GetService("UserInputService")
 local PlayerService = require(ReplicatedStorage.Services.PlayerService)
 local PlacementService = require(ReplicatedStorage.Util.PlacementService)
 local ObjectService = require(ReplicatedStorage.Services.ObjectService)
+local InteractableService = require(ReplicatedStorage.Services.ObjectService.InteractableService)
 
 local Spr = require(ReplicatedStorage.Packages.Spr)
 
@@ -74,18 +75,8 @@ local function handleInput(name, userInputState, _input)
         PlacementService.Place(model, currModel.PrimaryPart.CFrame, basePart)
         -- Check if object is interactable
         if objectData.state then 
-            -- cREATE PROXIMITY PROMPT
-            local prompt = Instance.new("ProximityPrompt")
-            prompt.ObjectText = ObjectService.GetName(objectData)
-            prompt.Parent = objectData.model
-            
-            local interactObjectData : InteractableObject = objectData
-            interactObjectData.prompt = prompt
-    
-            prompt.Triggered:Connect(function(trigger)
-                local success = ObjectService.RunCycle(interactObjectData)
-                success = if success then "True" else "False"
-            end)
+            --Create proximity prompt
+            InteractableService.CreatePrompt(objectData)
         end
         -- Reset data/create new object
         createNewObj()
