@@ -59,4 +59,66 @@ function ObjectService.CreateNew(name : string, player : Player)
     return data
 end
 
+-- Run object cycle
+function ObjectService.RunCycle(object : Interactable) : boolean
+    -- Check for player key
+    local objectState : MachineState = object.state
+    local key = PlayerService.GetKey(LocalPlayer)
+    local keyState = if key then key.state else nil
+
+    -- Check for machine in progress.. do nothing
+    if objectState == "In Progress" then
+        return false
+    -- If machine is empty, check for expectedLaundry state and load machine
+    elseif objectState == "Empty" then
+        if key and keyState == object.expectedLaundryState then -- if empty and laundry dirty, start cycle
+            object["state"] = "In Progress"
+            ToolService.DestroyModel(key)
+            PlayerService.ClearKey()
+            InteractableService.Display(object)
+        else
+            if keyState then
+                print(keyState.. " laundry does not go in ".. object.name)
+            else
+                print("Need ".. object.expectedLaundryState " laundry for ".. object.name)
+            end
+            return false
+        end
+    -- If complete, make sure no key exists 
+    elseif objectState == "Complete" then
+        if not key then
+            InteractableService.ClearDisplay(object)
+            key = ToolService.GiveTool(LocalPlayer, "laundrybasket")
+            ToolService.ChangeState(key, object.nextState)
+            object["state"] = "Empty"
+            return PlayerService.AssignKey(key)
+        else
+            print("Cannot load laundry with existing key.")
+            return false
+        end
+    else
+        error("Object state not recognized: ".. objectState)
+        return false
+    end
+    return true
+end
+
+function ObjectService.CreateHighlight(model : Model, color : Color3) : Highlight
+    -- Delete existing highlight if exists
+    local highlight = model:FindFirstChildOfClass("Highlight")
+    if not highlight then 
+         -- Create new highlight
+        highlight = Instance.new('Highlight')
+        highlight.Parent = model
+        highlight.Adornee = model
+        highlight.DepthMode = Enum.HighlightDepthMode.Occluded
+        highlight.FillTransparency = 0.5
+        highlight.OutlineColor = Color3.new(1,1,1)
+        highlight.OutlineTransparency = 0
+    end
+    -- Set color
+    highlight.FillColor = color
+    return highlight
+end
+
 return ObjectService
