@@ -68,9 +68,10 @@ local function handleInput(name, userInputState, _input)
             })
         end
     -- Handle placement
-    elseif name == PLACE and not PlacementService.IsColliding(currModel) and PlayerService.MakePurchase(objectData.cost) then
+    elseif name == PLACE then
+        -- Check object can be placed
+        if PlacementService.IsColliding(currModel) or not PlayerService.MakePurchase(objectData.cost) then return end
         local model = ObjectService.GetModel(objectData)
-        --local cf = PlacementService.CalcPlacementCFrame(basePart, currModel, Mouse.Hit.p, rotation)
         PlacementService.Place(model, currModel.PrimaryPart.CFrame, basePart)
         -- Check if object is interactable
         if objectData.state then 
@@ -97,10 +98,13 @@ local function handleInput(name, userInputState, _input)
     end
 end
 
+-- Run update curr model each frame
 RunService.RenderStepped:Connect(function(dt)
     if placeActive then
         local cf = PlacementService.CalcPlacementCFrame(basePart, currModel, Mouse.Hit.Position, rotation)
-        currModel:PivotTo(cf)
+        currModel:PivotTo(cf) 
+        local color = if PlacementService.IsColliding(currModel) then Color3.new(1,0,0) else Color3.new(0,1,0)
+        objHighlight = ObjectService.CreateHighlight(currModel, color)
     end
 end)
 
@@ -131,9 +135,9 @@ local function showButtons()
         placeActive = true
     end)
 
+    -- If player removes touch, stop tracking 
     UserInputService.InputEnded:Connect(function(input, _gameProcessedEvent)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            print(input.UserInputType)
             placeActive = false
         end
     end)
@@ -143,6 +147,7 @@ local function showButtons()
         handleInput(ROTATE, Enum.UserInputState.Begin)
     end)
 
+    -- Move object to inventory
     inventoryButton.Activated:Connect(function()
         print('This button has not been implemented.')
     end)

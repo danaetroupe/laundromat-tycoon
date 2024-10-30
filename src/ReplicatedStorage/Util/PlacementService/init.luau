@@ -100,11 +100,11 @@ end
  -- !! still need to implement way to pass in surface mouse is pointing at 
 
 function PlacementService.IsColliding(model : Model) : boolean
-	local touching = model.PrimaryPart:GetTouchingParts()
+	local touching = workspace:GetPartsInPart(model.PrimaryPart)
 	-- if intersecting with something that isn't part of the model then can't place
 	for _, part in touching do
-		if not part:IsDescendantOf(model) then
-			return true
+		if not part:IsDescendantOf(model) and part.CanCollide then
+            return true
 		end
 	end
 	return false

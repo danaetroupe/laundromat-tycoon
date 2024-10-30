@@ -106,4 +106,22 @@ function ObjectService.RunCycle(object : Interactable) : boolean
     return true
 end
 
+function ObjectService.CreateHighlight(model : Model, color : Color3) : Highlight
+    -- Delete existing highlight if exists
+    local highlight = model:FindFirstChildOfClass("Highlight")
+    if not highlight then 
+         -- Create new highlight
+        highlight = Instance.new('Highlight')
+        highlight.Parent = model
+        highlight.Adornee = model
+        highlight.DepthMode = Enum.HighlightDepthMode.Occluded
+        highlight.FillTransparency = 0.5
+        highlight.OutlineColor = Color3.new(1,1,1)
+        highlight.OutlineTransparency = 0
+    end
+    -- Set color
+    highlight.FillColor = color
+    return highlight
+end
+
 return ObjectService
