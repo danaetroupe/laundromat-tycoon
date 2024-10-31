@@ -1,4 +1,4 @@
-export type NPCState = "DropOff" | "PickUp"
+export type NPCState = "DropOff" | "PickUp" | "Waiting"
 
 export type NPC = {
 	name: string?,
