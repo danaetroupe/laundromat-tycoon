@@ -23,6 +23,65 @@ type NPCState = NPCData.NPC
 -- Events
 local isServer = RunService:IsServer()
 local NPCService = {}
+local _Data = {}
+
+-- Takes tycoon active state and spawns NPCs
+function NPCService.Init(player : Player, active : boolean)
+    if not _Data[player] then
+        _Data[player] = {}
+    end
+
+    _Data[player]["active"] = active
+	if active then -- if any npcs even currently exist destroy all of them    
+        _Data[player]["step"] = 0 -- if active reset all values 
+        _Data[player]["dropoff"] = {} -- set queue to empty
+        _Data[player]["pickup"] = {} -- set queue to empty
+        _Data[player]["tycoon"] = PlayerService.GetTycoon(player)
+    else
+        NPCService.DestroyAll(_Data["pickup"])
+        NPCService.DestroyAll(_Data["dropoff"])
+    end
+
+    while _Data[player]["active"] do -- increase step by 1 while player is active
+        if _Data[player]["step"] % PlayerService.GetSpawnRate(player) == 0 then
+            NPCService.SpawnNPC(player, "dropoff")
+        end
+        _Data[player]["step"] += 1
+        task.wait(1)
+    end
+end
+
+-- Spawn NPC and add to queue
+function NPCService.SpawnNPC(player : Player, line : string, npc : NPC)
+    local endPart : Part = _Data[player]["tycoon"][line]
+    npc = NPCService.SpawnNewCharacter(player, _Data[player]["tycoon"].Entry.CFrame, npc)
+    if line == "pickup" then -- If npc picking up, change to pickup status
+        NPCService.ChangeState(npc, "PickUp")
+    else
+        local leave = coroutine.create(function()
+            task.wait(60)
+            -- NPC got tired of waiting and walked out
+            if npc.state == "DropOff" then
+                NPCService.WalkOut(npc, true)
+            end
+        end)
+        coroutine.resume(leave)
+    end
+    -- Add to appropriate queue
+    table.insert(_Data[player][line], npc)
+
+    -- Walk to line position
+    local pos = endPart.Position + Vector3.new(1, 0, 0) * 2 * (#_Data[player][line]-1)
+    NPCService.WalkCharacter(npc, pos, endPart.Rotation)
+    if #_Data[player][line] == 1 then
+        NPCService.GivePrompt(npc)
+    end
+end
+
+if isServer then
+    NPCEvents.SpawnNPC.OnServerEvent:Connect(NPCService.SpawnNPC)
+end
+
 
 -- Spawns character in world and creates if necessary
 function NPCService.SpawnNewCharacter(player : Player, point : CFrameValue, data : NPC) : NPC
@@ -103,7 +162,7 @@ function NPCService.GivePrompt(npc : NPC)
                 if success then 
                     NPCService.ChangeState(npc, "Waiting")
                     NPCService.WalkOut(npc, false)
-                    NPCEvents.UpdateLine:FireServer("dropoff")
+                    NPCService.UpdateLine(player, "dropoff")
                     prompt:Destroy()
                 else
                     ToolService.Destroy(tool)
@@ -113,7 +172,7 @@ function NPCService.GivePrompt(npc : NPC)
                 PlayerService.ClearKey()
                 ToolService.Destroy(key)
                 NPCService.WalkOut(npc, true)
-                NPCEvents.UpdateLine:FireServer("pickup")
+                NPCService.UpdateLine(player, "pickup")
                 -- TODO: record satsifaction and whatnot... what events happen when they die
             end 
         end)
@@ -139,6 +198,18 @@ function NPCService.WalkOut(npc : NPC, destroy : boolean)
         npc.character:Destroy()
     else
         PlayerService.MoveToTemp(npc.character)
+    end
+end
+
+-- Update queue
+function NPCService.UpdateLine(player : Player, line : string) -- moves up line if event happens
+    table.remove(_Data[player][line], 1)
+	if #_Data[player][line] >= 1 then -- check if queue is not empty
+		NPCService.GivePrompt(_Data[player][line][1])
+	end
+    for i, attendant in _Data[player][line] do -- Move all humanoids up in the queue
+        local pos = _Data[player]["tycoon"][line].Position + Vector3.new(1, 0, 0) * 2 * (i-1)
+        NPCService.WalkCharacter(attendant, pos, _Data[player]["tycoon"][line].Rotation)
     end
 end
 

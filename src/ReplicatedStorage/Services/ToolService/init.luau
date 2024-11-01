@@ -90,7 +90,7 @@ end
 
 -- Allows server side communication
 if isServer then
-    ToolEvents.ExecuteOnServer.OnServerInvoke = function(player, func, ...)
+    ToolEvents.ExecuteOnServer.OnServerInvoke = function(_player, func, ...)
         return ToolService[func](...)
     end
 end
