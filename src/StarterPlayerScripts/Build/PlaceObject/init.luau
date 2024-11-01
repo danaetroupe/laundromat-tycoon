@@ -39,13 +39,19 @@ local function createNewObj()
     objectData = ObjectService.CreateNew(objName, LocalPlayer)
 end
 
+local function show(cf : CFrame)
+    cf = cf or PlacementService.CalcPlacementCFrame(basePart, currModel, currModel.PrimaryPart.CFrame.Position, rotation)
+    currModel:PivotTo(cf)
+    local color = if PlacementService.IsColliding(currModel) then Color3.new(1,0,0) else Color3.new(0,1,0)
+    ObjectService.CreateHighlight(currModel, color)
+end
+
 local function handleInput(name, userInputState, _input)
     if userInputState ~= Enum.UserInputState.Begin then return end
     -- Handle rotations
     if name == ROTATE then
         rotation = rotation + math.pi/2
-        local cf = PlacementService.CalcPlacementCFrame(basePart, currModel, currModel.PrimaryPart.CFrame.Position, rotation)
-        currModel:PivotTo(cf)
+        show()
     -- Exit placement mode
     elseif name == QUIT then
         placeActive = false
@@ -81,6 +87,7 @@ local function handleInput(name, userInputState, _input)
         end
         -- Reset data/create new object
         createNewObj()
+        show()
     elseif name == MOUSEUP then
         placeActive = false
         ContextActionService:UnbindAction(MOUSEUP)
@@ -92,10 +99,7 @@ end
 -- Run update curr model each frame
 RunService.RenderStepped:Connect(function(dt)
     if placeActive then
-        local cf = PlacementService.CalcPlacementCFrame(basePart, currModel, Mouse.Hit.Position, rotation)
-        currModel:PivotTo(cf) 
-        local color = if PlacementService.IsColliding(currModel) then Color3.new(1,0,0) else Color3.new(0,1,0)
-        objHighlight = ObjectService.CreateHighlight(currModel, color)
+        show()
     end
 end)
 
@@ -175,7 +179,7 @@ return function(button : TextButton, objectName : string, panel : Frame) -- Give
         if UserInputService.TouchEnabled then 
             -- Put close to player
             local cf = PlacementService.CalcPlacementCFrame(basePart, currModel, LocalPlayer.Character.HumanoidRootPart.CFrame.Position + Vector3.new(4, 0, 0), rotation)
-            currModel:PivotTo(cf)
+            show(cf)
             -- Show buttons
             showButtons()
         else
