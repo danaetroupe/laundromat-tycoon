@@ -16,7 +16,10 @@ function MovementService.Move(character : Model, destination : Vector3, paramete
 	local track : AnimationTrack = animator:LoadAnimation(walkAnim)
  
 	-- Set pathfinding variables
-	parameters = parameters or {}
+	parameters = parameters or {
+		AgentRadius = 3,
+		AgentCanJump = false,
+	}
     local path : Path = PathfindingService:CreatePath(parameters)
     local blockedConnection
     local reachedConnection
@@ -37,7 +40,7 @@ function MovementService.Move(character : Model, destination : Vector3, paramete
 				-- Stop detecting path blockage until path is re-computed
 				blockedConnection:Disconnect()
 				-- Call function to re-compute new path
-				PathfindingService.Move(character, destination)
+				MovementService.Move(character, destination)
 			end
 		end)
 
