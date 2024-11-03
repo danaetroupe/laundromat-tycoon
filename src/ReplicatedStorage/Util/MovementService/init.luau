@@ -16,10 +16,7 @@ function MovementService.Move(character : Model, destination : Vector3, paramete
 	local track : AnimationTrack = animator:LoadAnimation(walkAnim)
  
 	-- Set pathfinding variables
-	parameters = parameters or {
-		AgentRadius = 3,
-		AgentCanJump = false,
-	}
+	parameters = parameters or {}
     local path : Path = PathfindingService:CreatePath(parameters)
     local blockedConnection
     local reachedConnection
