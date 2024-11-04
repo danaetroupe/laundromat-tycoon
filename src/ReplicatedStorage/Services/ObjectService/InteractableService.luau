@@ -85,13 +85,14 @@ function InteractableService.RunCycle(object : Interactable) : boolean
         if key and keyState == object.expectedLaundryState then -- if empty and laundry dirty, start cycle
             object["state"] = "In Progress"
             ToolService.DestroyModel(key)
+            object.tool = key
             PlayerService.ClearKey()
             InteractableService.Display(object)
         else
             if keyState then
                 print(keyState.. " laundry does not go in ".. object.name)
             else
-                print("Need ".. object.expectedLaundryState " laundry for ".. object.name)
+                print("Need ".. object.expectedLaundryState.. " laundry for ".. object.name)
             end
             return false
         end
@@ -99,8 +100,8 @@ function InteractableService.RunCycle(object : Interactable) : boolean
     elseif objectState == "Complete" then
         if not key then
             InteractableService.ClearDisplay(object)
-            key = ToolService.GiveTool(LocalPlayer, "laundrybasket")
-            ToolService.ChangeState(key, object.nextState)
+            key = ToolService.EquipExistingTool(LocalPlayer, object.tool, object.nextState)
+            object.tool = nil
             object["state"] = "Empty"
             return PlayerService.AssignKey(key)
         else
