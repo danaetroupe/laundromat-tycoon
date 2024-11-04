@@ -64,6 +64,7 @@ function NPCService.SpawnNPC(player : Player, line : string, npc : NPC)
             if npc.state == "DropOff" then
                 NPCService.WalkOut(npc, true)
             end
+            NPCService.UpdateLine(player, "dropoff")
         end)
         coroutine.resume(leave)
     end
@@ -108,7 +109,7 @@ end
 
 -- Walks character to point
 function NPCService.WalkCharacter(data : NPC, point : Vector3, rotation : Vector3)
-    local character : Model = data["character"]
+    local character : Model = data.character
     if not character then
         error("Character not given.")
         return
@@ -157,7 +158,7 @@ function NPCService.GivePrompt(npc : NPC)
             local key = PlayerService.GetKey(player)
             local keyState = if key then ToolService.GetState(key) else nil
             if state == "DropOff" and not PlayerService.GetKey(player) then
-                local tool = ToolService.GiveTool(player, "laundrybasket", npc)
+                local tool = ToolService.GiveNewTool(player, "laundrybasket", npc)
                 local success = PlayerService.AssignKey(tool)
                 if success then 
                     NPCService.ChangeState(npc, "Waiting")
@@ -203,14 +204,24 @@ end
 
 -- Update queue
 function NPCService.UpdateLine(player : Player, line : string) -- moves up line if event happens
-    table.remove(_Data[player][line], 1)
-	if #_Data[player][line] >= 1 then -- check if queue is not empty
-		NPCService.GivePrompt(_Data[player][line][1])
-	end
-    for i, attendant in _Data[player][line] do -- Move all humanoids up in the queue
-        local pos = _Data[player]["tycoon"][line].Position + Vector3.new(1, 0, 0) * 2 * (i-1)
-        NPCService.WalkCharacter(attendant, pos, _Data[player]["tycoon"][line].Rotation)
+    if isServer then
+        table.remove(_Data[player][line], 1)
+        if #_Data[player][line] >= 1 then -- check if queue is not empty
+            NPCService.GivePrompt(_Data[player][line][1])
+        end
+        for i, attendant in _Data[player][line] do -- Move all humanoids up in the queue
+            local pos = _Data[player]["tycoon"][line].Position + Vector3.new(1, 0, 0) * 2 * (i-1)
+            NPCService.WalkCharacter(attendant, pos, _Data[player]["tycoon"][line].Rotation)
+        end
+    else
+        NPCEvents.ExecuteOnServer:FireServer("UpdateLine", player, line)
     end
+end
+
+if isServer then
+    NPCEvents.ExecuteOnServer.OnServerEvent:Connect(function(_player, func, ...)
+        NPCService[func](...)
+    end)
 end
 
 return NPCService

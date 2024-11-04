@@ -246,7 +246,7 @@ function PlayerService.MoveToWorld(tool : ToolInfo, position : Vector3) : nil
             -- Check to make sure player doesn't have existing key
             if not PlayerService.GetKey(LocalPlayer) then
                 ToolService._ReEnableTool(tool)
-                ToolService.EquipExistingTool(player,tool)
+                tool = ToolService.EquipExistingTool(player,tool)
                 PlayerService.AssignKey(tool)
                 prompt:Destroy()
             end

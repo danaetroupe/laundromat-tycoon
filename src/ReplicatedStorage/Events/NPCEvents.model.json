@@ -16,6 +16,11 @@
         {
             "Name": "SpawnNPC",
             "ClassName": "RemoteEvent"
+        },
+        {
+            "Name": "ExecuteOnServer",
+            "ClassName": "RemoteEvent"
         }
+        
     ]
 }

@@ -21,7 +21,7 @@ local LocalPlayer = if not isServer then Players.LocalPlayer else nil
 local ToolService = {}
 
 -- Gives player tool and activates it
-function ToolService.GiveTool(player : Player, toolName : string, npc : NPC) : table
+function ToolService.GiveNewTool(player : Player, toolName : string, npc : NPC) : table
     local character = player.Character or player.CharacterAdded:Wait()
     local humanoid = character.Humanoid
     local tool : ToolInfo = table.clone(Tools.GetTool(toolName))
@@ -31,16 +31,21 @@ function ToolService.GiveTool(player : Player, toolName : string, npc : NPC) : t
     return tool
 end
 
--- Client script to equip tool
-function ToolService.EquipExistingTool(player : Player, tool : ToolInfo)
+-- Equips tool and returns new tool obj
+function ToolService.EquipExistingTool(player : Player, tool : ToolInfo, state : ToolState) : ToolInfo
     if isServer then
-        local character = player.Character or player.CharacterAdded:Wait()
-        character.Humanoid:EquipTool(tool.model)
-    else
+        if state then 
+            tool.state = state
+        end
         if not tool.model then
             tool.model = ModelService.GetModelFromStorage(tool.assetName, "Tools")
         end
-        ToolEvents.ExecuteOnServer:InvokeServer("EquipExistingTool", LocalPlayer, tool)
+        -- Give tool to character
+        local character = player.Character or player.CharacterAdded:Wait()
+        character.Humanoid:EquipTool(tool.model)
+        return tool
+    else
+        return ToolEvents.ExecuteOnServer:InvokeServer("EquipExistingTool", player, tool, state)
     end
 end
 
@@ -63,7 +68,7 @@ end
 function ToolService.ChangeState(tool : ToolInfo, state : ToolState)
     tool["state"] = state
     if state == "Ready" then
-        NPCEvents.SpawnNPC:FireServer("pickup", tool.npc)
+        ToolEvents.ToolReady:FireServer("pickup", tool.npc)
     end
 end
 
@@ -73,6 +78,7 @@ function ToolService.DestroyModel(tool : ToolInfo)
     else
         ToolEvents.ExecuteOnServer:InvokeServer("DestroyModel", tool)
     end
+    tool.model = nil
 end
 
 function ToolService.GetNPC(tool : ToolInfo) : NPC

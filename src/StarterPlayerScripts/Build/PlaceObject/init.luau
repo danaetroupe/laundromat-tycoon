@@ -40,7 +40,7 @@ local function createNewObj()
 end
 
 local function show(cf : CFrame)
-    cf = cf or PlacementService.CalcPlacementCFrame(basePart, currModel, currModel.PrimaryPart.CFrame.Position, rotation)
+    cf = cf or PlacementService.CalcPlacementCFrame(basePart, currModel, Mouse.Hit.Position, rotation)
     currModel:PivotTo(cf)
     local color = if PlacementService.IsColliding(currModel) then Color3.new(1,0,0) else Color3.new(0,1,0)
     ObjectService.CreateHighlight(currModel, color)
