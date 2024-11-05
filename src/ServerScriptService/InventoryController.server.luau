@@ -28,6 +28,3 @@ InventoryEvents.AddToInventory.OnServerInvoke = function(player : Player, itemNa
 
     return true
 end
-
-
-
