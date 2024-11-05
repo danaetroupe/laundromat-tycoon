@@ -12,7 +12,8 @@ export type PlayerData = {
 	key: ToolInfo?,
 	spawn_rate : number,
 	profit: number,
-	isBuilding : boolean
+	isBuilding : boolean,
+	temp : Folder?
 }
 
 local info : PlayerData = {
