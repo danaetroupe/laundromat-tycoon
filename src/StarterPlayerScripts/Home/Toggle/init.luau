@@ -1,7 +1,6 @@
 local ContextActionService = game:GetService("ContextActionService")
-local UserInputService = game:GetService("UserInputService")
--- Function to toggle frame visibility
 
+-- Function to toggle frame visibility
 local function togglePanel(name : string, frames)
     for _, frame : Instance in frames:GetChildren() do
         if frame:IsA("Frame") or frame:IsA("ScrollingFrame") then
