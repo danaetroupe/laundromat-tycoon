@@ -5,10 +5,14 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 -- Modules
 local PlayerService = require(ReplicatedStorage.Services.PlayerService)
 local ToolService = require(ReplicatedStorage.Services.ToolService)
+local UIService = require(ReplicatedStorage.Services.UIService)
 
 -- Data
 local ObjectData = require(ReplicatedStorage.Data.ObjectData)
 local ToolData = require(ReplicatedStorage.Data.ToolData)
+
+-- UI
+local Messages = require(ReplicatedStorage.UI.Messages)
 
 -- Events
 
@@ -76,6 +80,7 @@ function InteractableService.RunCycle(object : Interactable) : boolean
     local objectState : MachineState = object.state
     local key = PlayerService.GetKey(LocalPlayer)
     local keyState = if key then key.state else nil
+    local message
 
     -- Check for machine in progress.. do nothing
     if objectState == "In Progress" then
@@ -89,9 +94,9 @@ function InteractableService.RunCycle(object : Interactable) : boolean
             InteractableService.Display(object)
         else
             if keyState then
-                print(keyState.. " laundry does not go in ".. object.name)
+                message = keyState.. " laundry does not go in ".. object.name
             else
-                print("Need ".. object.expectedLaundryState " laundry for ".. object.name)
+                message = "Need ".. object.expectedLaundryState " laundry for ".. object.name
             end
             return false
         end
@@ -104,12 +109,21 @@ function InteractableService.RunCycle(object : Interactable) : boolean
             object["state"] = "Empty"
             return PlayerService.AssignKey(key)
         else
-            print("Cannot load laundry with existing key.")
+            message = "Machine already has laundry. Please unload."
             return false
         end
     else
         error("Object state not recognized: ".. objectState)
         return false
+    end
+
+    -- Show message if applicable
+    if message then 
+        local messageFrame = Messages:createMessage(message)
+                    UIService.createScope(message)
+                    task.delay(3, function()
+                        Messages.fade(messageFrame, 0)
+                    end)
     end
     return true
 end

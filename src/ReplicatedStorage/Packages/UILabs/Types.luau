@@ -69,7 +69,7 @@ export type WithIris = {
 	iris: any,
 }
 
-export type IrisStoryKey = (props: IrisProps) -> Cleanup? | nil
+export type IrisStoryKey = (props: IrisProps) -> Cleanup?
 export type IrisStory = StoryBase & WithIris & {
 	story: IrisStoryKey,
 }
