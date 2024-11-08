@@ -21,18 +21,18 @@ local LocalPlayer = if not isServer then Players.LocalPlayer else nil
 local ToolService = {}
 
 -- Gives player tool and activates it
-function ToolService.GiveNewTool(player : Player, toolName : string, npc : NPC): table
+function ToolService.GiveNewTool(player : Player, toolName : string, id : string): table
 	if isServer then
 		local character = player.Character or player.CharacterAdded:Wait()
 		local humanoid = character.Humanoid
 		local tool : ToolInfo = table.clone(Tools.GetTool(toolName))
-		tool.npc = npc
+		tool.npcId = id
 		tool.model = ModelService.GetModelFromStorage(tool.assetName, "Tools")
 		tool.model.Parent = character
 		humanoid:EquipTool(tool.model)
 		return tool
 	else
-		return ToolEvents.ExecuteOnServer:InvokeServer("GiveNewTool", player, toolName, npc)
+		return ToolEvents.ExecuteOnServer:InvokeServer("GiveNewTool", player, toolName, id)
 	end
 end
 
@@ -53,7 +53,7 @@ function ToolService.EquipExistingTool(player : Player, tool : ToolInfo, state :
 	else
 		tool = ToolEvents.ExecuteOnServer:InvokeServer("EquipExistingTool", player, tool, state)
 		if tool.state == "Ready" then
-			ToolEvents.ToolReady:FireServer("pickup", tool.npc)
+			ToolEvents.ToolReady:FireServer(tool.npcId)
 		end
 		return tool
 	end
@@ -81,10 +81,6 @@ function ToolService.DestroyModel(tool : ToolInfo)
 		ToolEvents.ExecuteOnServer:InvokeServer("DestroyModel", tool)
 	end
 	tool.model = nil
-end
-
-function ToolService.GetNPC(tool : ToolInfo) : NPC
-	return tool.npc
 end
 
 function ToolService._ReEnableTool(tool : ToolInfo)

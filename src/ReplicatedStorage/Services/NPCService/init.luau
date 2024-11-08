@@ -2,6 +2,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local HttpService = game:GetService("HttpService")
 
 -- Modules
 local MovementService = require(ReplicatedStorage.Util.MovementService)
@@ -33,6 +34,7 @@ function NPCService.Init(player : Player, active : boolean)
 
         Players.PlayerRemoving:Connect(function(plr)
             if player == plr then
+				print('wtf!')
                 _Data[player] = nil
             end
         end)
@@ -44,9 +46,11 @@ function NPCService.Init(player : Player, active : boolean)
 		_Data[player]["dropoff"] = {} -- set queue to empty
 		_Data[player]["pickup"] = {} -- set queue to empty
 		_Data[player]["tycoon"] = PlayerService.GetTycoon(player)
+		_Data[player]["purgatory"] = {}
 	else
 		NPCService.DestroyAll(_Data["pickup"])
 		NPCService.DestroyAll(_Data["dropoff"])
+		NPCService.DestroyAll(_Data["purgatory"])
 	end
 
 	while _Data[player]["active"] do -- increase step by 1 while player is active
@@ -86,10 +90,6 @@ function NPCService.SpawnNPC(player : Player, line : string, npc : NPC)
 	end
 end
 
-if isServer then
-	NPCEvents.SpawnNPC.OnServerEvent:Connect(NPCService.SpawnNPC)
-end
-
 -- Spawns character in world and creates if necessary
 function NPCService.SpawnNewCharacter(player : Player, point : CFrameValue, data : NPC) : NPC
 	data = data or table.clone(NPCData)
@@ -108,8 +108,9 @@ function NPCService.SpawnNewCharacter(player : Player, point : CFrameValue, data
 
 	PlayerService.MoveToNPCFolder(player, character)
 	character.HumanoidRootPart.CFrame = point -- Set to point
-	data["character"] = character
-	data["player"] = player
+	data.character = character
+	data.player = player
+	data.id = HttpService:GenerateGUID(false)
 	return data
 end
 
@@ -151,6 +152,14 @@ function NPCService.FaceForwards(npc : NPC, part : Part)
 	character:PivotTo(CFrame.lookAt(character.PrimaryPart.CFrame.Position, part.CFrame.LookVector))
 end
 
+-- Add to purgatory :( 
+function NPCService.AddToPurgatory(player : Player, npc : NPC)
+	if isServer then
+		table.insert(_Data[player]["purgatory"], npc)
+	else
+		NPCEvents.ExecuteOnServer:FireServer("AddToPurgatory", player, npc)
+	end
+end
 -- Give NPC a proximity prompt
 function NPCService.GivePrompt(npc : NPC)
 	if isServer then
@@ -165,17 +174,18 @@ function NPCService.GivePrompt(npc : NPC)
 			local keyState = if key then ToolService.GetState(key) else nil
 			-- Check if npc is dropping off and player does not have key
 			if state == "DropOff" and not PlayerService.GetKey(player) then
-				local tool = ToolService.GiveNewTool(player, "laundrybasket", npc)
+				local tool = ToolService.GiveNewTool(player, "laundrybasket", npc.id)
 				local success = PlayerService.AssignKey(tool)
 				if success then
+					npc.state = "Pickup"
 					NPCService.WalkOut(npc, false)
 					NPCService.UpdateLine(player, "dropoff")
 					prompt:Destroy()
+					NPCService.AddToPurgatory(player, npc)
 				else
 					ToolService.Destroy(tool)
 				end
 			elseif state == "PickUp" and key and keyState == "Ready" then
-				print("äctivated")
 				PlayerService.AddMoney(player)
 				PlayerService.ClearKey()
 				ToolService.Destroy(key)
@@ -229,6 +239,23 @@ if isServer then
 	NPCEvents.ExecuteOnServer.OnServerEvent:Connect(function(_player, func, ...)
 		NPCService[func](...)
 	end)
+end
+
+function NPCService.SpawnById(player : Player, id : string)
+	local npc
+	for i, data : NPC in _Data[player]["purgatory"] do
+		if data.id == id then
+			npc = data
+			table.remove(_Data[player]["purgatory"], i)
+			break
+		end
+	end
+	if not npc then 
+		error("Trying to spawn but id doesn't exist") 
+		return
+	end
+
+	NPCService.SpawnNPC(player, "pickup", npc)
 end
 
 return NPCService

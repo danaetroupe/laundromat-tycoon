@@ -5,6 +5,6 @@ local NPCService = require(ReplicatedStorage.Services.NPCService)
 
 local ToolEvents = ReplicatedStorage.Events.ToolEvents
 
-ToolEvents.ToolReady.OnServerEvent:Connect(function(player, ...)
-	NPCService.SpawnNPC(player, ...)
+ToolEvents.ToolReady.OnServerEvent:Connect(function(player, id)
+	NPCService.SpawnById(player, id)
 end)
