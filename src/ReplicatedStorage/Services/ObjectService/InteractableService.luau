@@ -103,7 +103,6 @@ function InteractableService.RunCycle(object : Interactable) : boolean
 			else
 				message = "Need ".. object.expectedLaundryState " laundry for ".. object.name
 			end
-			return false
 		end
 	-- If complete, make sure no key exists
 	elseif objectState == "Complete" then
@@ -122,11 +121,11 @@ function InteractableService.RunCycle(object : Interactable) : boolean
 	end
 	-- Show message if applicable
     if message then 
-        local messageFrame = Messages:createMessage(message)
-                    UIService.createScope(message)
-                    task.delay(3, function()
-                        Messages.fade(messageFrame, 0)
-                    end)
+        local messageFrame = Messages.createMessage(message)
+		UIService.createScope(messageFrame)
+		task.delay(3, function()
+			Messages.fade(messageFrame, 0)
+		end)
 		return false
     end
 
