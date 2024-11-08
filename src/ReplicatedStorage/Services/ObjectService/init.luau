@@ -46,12 +46,11 @@ end
 
 -- GAME FUNCTIONALITY ----------------------------------------------------------------
 -- Returns new data table of object name
-function ObjectService.CreateNew(name : string, player : Player) 
+function ObjectService.CreateNew(name : string) : Object
     -- runs on client
-    local data : Object = Objects.GetObject(name)
-    data = table.clone(data)
+    local data : Object = table.clone(Objects.GetObject(name))
     local model = ReplicatedStorage.Assets.Objects:FindFirstChild(data["assetName"], true)
-    data.model = ModelService.CreateOnServer(model, PlayerService.GetTempFolder(player))
+    data.model = ModelService.CreateOnServer(model)
     return data
 end
 

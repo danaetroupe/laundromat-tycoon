@@ -35,15 +35,40 @@ local QUIT = "Quit"
 local PLACE = "Place"
 local MOUSEUP = "TouchEnded"
 
+local PlaceObject = {}
+
 local function createNewObj()
     objectData = ObjectService.CreateNew(objName, LocalPlayer)
 end
 
 local function show(cf : CFrame)
-    cf = cf or PlacementService.CalcPlacementCFrame(basePart, currModel, Mouse.Hit.Position, rotation)
+    cf = cf or PlacementService.CalcPlacementCFrame(basePart, currModel, currModel.PrimaryPart.CFrame.Position, rotation)
     currModel:PivotTo(cf)
     local color = if PlacementService.IsColliding(currModel) then Color3.new(1,0,0) else Color3.new(0,1,0)
     ObjectService.CreateHighlight(currModel, color)
+end
+
+function PlaceObject.quit()
+    placeActive = false
+    if currModel then 
+        currModel:Destroy() 
+    end
+    rotation = 0
+    ContextActionService:UnbindAction(PLACE)
+    ContextActionService:UnbindAction(ROTATE)
+    ContextActionService:UnbindAction(QUIT)
+    Mouse.TargetFilter = nil
+
+    -- Reopen panel if it exists 
+    if buildPanel then
+        Spr.target(buildPanel.Panel, 1, 1, {
+            Position = UDim2.fromScale(0, 0)
+        })
+            -- Hide keybinds
+        Spr.target(buildPanel.Keybinds.Buy, 1, 1, {
+                Position = UDim2.fromScale(-0.1, 0.5)
+        })
+    end
 end
 
 local function handleInput(name, userInputState, _input)
@@ -54,26 +79,7 @@ local function handleInput(name, userInputState, _input)
         show()
     -- Exit placement mode
     elseif name == QUIT then
-        placeActive = false
-        if currModel then 
-            currModel:Destroy() 
-        end
-        rotation = 0
-        ContextActionService:UnbindAction(PLACE)
-        ContextActionService:UnbindAction(ROTATE)
-        ContextActionService:UnbindAction(QUIT)
-        Mouse.TargetFilter = nil
-
-        -- Reopen panel if it exists 
-        if buildPanel then
-            Spr.target(buildPanel.Panel, 1, 1, {
-                Position = UDim2.fromScale(0, 0)
-            })
-             -- Hide keybinds
-            Spr.target(buildPanel.Keybinds.Buy, 1, 1, {
-                    Position = UDim2.fromScale(-0.1, 0.5)
-            })
-        end
+        PlaceObject.quit()
     -- Handle placement
     elseif name == PLACE then
         -- Check object can be placed
@@ -97,7 +103,7 @@ local function handleInput(name, userInputState, _input)
 end
 
 -- Run update curr model each frame
-RunService.RenderStepped:Connect(function(dt)
+RunService.RenderStepped:Connect(function(_dt)
     if placeActive then
         show()
     end
@@ -156,7 +162,7 @@ local function showButtons()
 end
 
 
-return function(button : TextButton, objectName : string, panel : Frame) -- Gives functionality to "Place" dev button
+function PlaceObject.Init(button : TextButton, objectName : string, panel : Frame) -- Gives functionality to "Place" dev button
     button.Activated:Connect(function()
         -- Delete existing values
         handleInput(QUIT, Enum.UserInputState.Begin)
@@ -198,3 +204,5 @@ return function(button : TextButton, objectName : string, panel : Frame) -- Give
         })
     end)
 end
+
+return PlaceObject
