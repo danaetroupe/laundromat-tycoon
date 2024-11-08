@@ -63,6 +63,7 @@ function NPCService.SpawnNPC(player : Player, line : string, npc : NPC)
             -- NPC got tired of waiting and walked out
             if npc.state == "DropOff" then
                 NPCService.WalkOut(npc, true)
+                NPCService.UpdateLine(player, "dropoff")
             end
         end)
         coroutine.resume(leave)

@@ -15,6 +15,8 @@ function UIService.createScope(object) : ScreenGui
             print('gui destroyed because no more children')
         end
     end)
+
+    return gui
 end
 
 return UIService

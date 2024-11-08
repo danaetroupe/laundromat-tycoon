@@ -1,9 +1,6 @@
 -- Services
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
--- Modules
-
 -- Events
 local PlacementEvents = ReplicatedStorage.Events.PlacementEvents
 

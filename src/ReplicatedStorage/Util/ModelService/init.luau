@@ -7,13 +7,15 @@ local ReplicateOnServer = script.Events.ReplicateOnServer
 local isServer =  RunService:IsServer()
 local ModelService = {}
 
-function ModelService.CreateOnServer(object : Model, targetFolder : Folder)
+function ModelService.CreateOnServer(object : Model)
     if isServer then
         local newObj = object:Clone()
-        newObj.Parent = targetFolder
+        local folder = Instance.new("Folder")
+        folder.Parent = ReplicatedStorage
+        newObj.Parent = folder
         return newObj
     else
-        return ReplicateOnServer:InvokeServer(object, targetFolder)
+        return ReplicateOnServer:InvokeServer(object)
     end  
 end
 

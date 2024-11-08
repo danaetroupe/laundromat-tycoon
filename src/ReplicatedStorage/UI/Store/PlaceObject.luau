@@ -9,8 +9,6 @@ local PlacementService = require(ReplicatedStorage.Util.PlacementService)
 local ObjectService = require(ReplicatedStorage.Services.ObjectService)
 local InteractableService = require(ReplicatedStorage.Services.ObjectService.InteractableService)
 
-local Spr = require(ReplicatedStorage.Packages.Spr)
-
 local ObjectData = require(ReplicatedStorage.Data.ObjectData)
 
 type Object = ObjectData.Object
@@ -18,7 +16,6 @@ type InteractableObject = ObjectData.InteractableObject
 
 -- Varaibles
 local LocalPlayer = Players.LocalPlayer
-local MobileButtons = ReplicatedStorage.Assets.UI.ObjectEditor_Mobile
 local Mouse = LocalPlayer:GetMouse()
 local Camera = workspace.CurrentCamera
 
@@ -29,6 +26,7 @@ local currModel : Model = nil
 local basePart : Part = nil
 local objectData : Object = nil
 local buildPanel : Frame = nil
+local isBuilding : BoolValue = nil
 
 local ROTATE = "Rotate"
 local QUIT = "Quit"
@@ -37,12 +35,87 @@ local MOUSEUP = "TouchEnded"
 
 local PlaceObject = {}
 
+-- Create mobile buttons
+local function _createMobileButtons() : Frame
+    local frame = Instance.new("Frame")
+    frame.Name = "ObjectEditor_Mobile"
+    frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    frame.BackgroundTransparency = 1
+    frame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+    frame.BorderSizePixel = 0
+    frame.Position = UDim2.fromScale(0.5, 0.5)
+    frame.Size = UDim2.fromScale(0.1, 0.1)
+    frame.SizeConstraint = Enum.SizeConstraint.RelativeYY
+
+    local place = Instance.new("ImageButton")
+    place.Name = "Place"
+    place.AnchorPoint = Vector2.new(0, 1)
+    place.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    place.BackgroundTransparency = 1
+    place.BorderColor3 = Color3.fromRGB(0, 0, 0)
+    place.BorderSizePixel = 0
+    place.Image = "rbxassetid://115789813803218"
+    place.LayoutOrder = 1
+    place.Size = UDim2.fromScale(1, 1)
+    place.Parent = frame
+
+    local rotate = Instance.new("ImageButton")
+    rotate.Name = "Rotate"
+    rotate.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    rotate.BackgroundTransparency = 1
+    rotate.BorderColor3 = Color3.fromRGB(0, 0, 0)
+    rotate.BorderSizePixel = 0
+    rotate.Image = "rbxassetid://101527014073084"
+    rotate.LayoutOrder = 1
+    rotate.Position = UDim2.fromScale(1, 0)
+    rotate.Size = UDim2.fromScale(1, 1)
+    rotate.Parent = frame
+
+    local quit = Instance.new("ImageButton")
+    quit.Name = "Quit"
+    quit.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    quit.BackgroundTransparency = 1
+    quit.BorderColor3 = Color3.fromRGB(0, 0, 0)
+    quit.BorderSizePixel = 0
+    quit.Image = "rbxassetid://90664024735834"
+    quit.LayoutOrder = 6
+    quit.Position = UDim2.fromScale(0, 1)
+    quit.Size = UDim2.fromScale(1, 1)
+    quit.Parent = frame
+
+    local move = Instance.new("ImageButton")
+    move.Name = "Move"
+    move.AnchorPoint = Vector2.new(0.5, 0.5)
+    move.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    move.BackgroundTransparency = 1
+    move.BorderColor3 = Color3.fromRGB(0, 0, 0)
+    move.BorderSizePixel = 0
+    move.Image = "rbxassetid://116198684807917"
+    move.Position = UDim2.fromScale(0.5, 0.5)
+    move.Size = UDim2.fromScale(1, 1)
+    move.Parent = frame
+
+    local inventory = Instance.new("ImageButton")
+    inventory.Name = "Inventory"
+    inventory.AnchorPoint = Vector2.new(1, 0)
+    inventory.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    inventory.BackgroundTransparency = 1
+    inventory.BorderColor3 = Color3.fromRGB(0, 0, 0)
+    inventory.BorderSizePixel = 0
+    inventory.Image = "rbxassetid://139137859541107"
+    inventory.LayoutOrder = 2
+    inventory.Size = UDim2.fromScale(1, 1)
+    inventory.Parent = frame
+
+    return frame
+end
+
 local function createNewObj()
-    objectData = ObjectService.CreateNew(objName, LocalPlayer)
+    objectData = ObjectService.CreateNew(objName)
 end
 
 local function show(cf : CFrame)
-    cf = cf or PlacementService.CalcPlacementCFrame(basePart, currModel, currModel.PrimaryPart.CFrame.Position, rotation)
+    cf = cf or PlacementService.CalcPlacementCFrame(basePart, currModel, Mouse.Hit.Position, rotation)
     currModel:PivotTo(cf)
     local color = if PlacementService.IsColliding(currModel) then Color3.new(1,0,0) else Color3.new(0,1,0)
     ObjectService.CreateHighlight(currModel, color)
@@ -59,16 +132,7 @@ function PlaceObject.quit()
     ContextActionService:UnbindAction(QUIT)
     Mouse.TargetFilter = nil
 
-    -- Reopen panel if it exists 
-    if buildPanel then
-        Spr.target(buildPanel.Panel, 1, 1, {
-            Position = UDim2.fromScale(0, 0)
-        })
-            -- Hide keybinds
-        Spr.target(buildPanel.Keybinds.Buy, 1, 1, {
-                Position = UDim2.fromScale(-0.1, 0.5)
-        })
-    end
+    isBuilding.Value = false
 end
 
 local function handleInput(name, userInputState, _input)
@@ -111,7 +175,7 @@ end)
 
 -- Handle mobile input
 local function showButtons()
-    local frame : Frame = MobileButtons:Clone()
+    local frame = _createMobileButtons()
     frame.Parent = buildPanel.Keybinds
 
     -- Bind position to object position
@@ -162,10 +226,12 @@ local function showButtons()
 end
 
 
-function PlaceObject.Init(button : TextButton, objectName : string, panel : Frame) -- Gives functionality to "Place" dev button
+function PlaceObject.Init(button : ImageButton, objectName : string, buildValue : BoolValue) -- Gives functionality to "Place" dev button
     button.Activated:Connect(function()
+        isBuilding = buildValue
         -- Delete existing values
         handleInput(QUIT, Enum.UserInputState.Begin)
+        isBuilding.Value = true
         -- Create new object
         objName = objectName
         createNewObj()
@@ -174,7 +240,6 @@ function PlaceObject.Init(button : TextButton, objectName : string, panel : Fram
 
         currModel = objectData.model:Clone()
         currModel.Parent = Mouse.TargetFilter
-        buildPanel = panel
 
         -- Bind actions 
         ContextActionService:BindAction(ROTATE, handleInput, false, Enum.KeyCode.R)
@@ -183,25 +248,15 @@ function PlaceObject.Init(button : TextButton, objectName : string, panel : Fram
 
         -- Enable mobile buttons
         if UserInputService.TouchEnabled then 
-            -- Put close to player
+            -- Place object
             local cf = PlacementService.CalcPlacementCFrame(basePart, currModel, LocalPlayer.Character.HumanoidRootPart.CFrame.Position + Vector3.new(4, 0, 0), rotation)
             show(cf)
-            -- Show buttons
-            showButtons()
+            showButtons() -- Show buttons
         else
             -- Only set placeactive always true on computer
             placeActive = true
-            -- Show keybinds
-            local keybindPanel : Frame = panel.Keybinds.Buy
-            Spr.target(keybindPanel, 1, 1, {
-                Position = UDim2.fromScale(0, 0.5)
-            })
+            print(placeActive)
         end
-
-        -- Close build panel
-        Spr.target(buildPanel.Panel, 1, 1, {
-            Position = UDim2.fromScale(0, -1)
-        })
     end)
 end
 
