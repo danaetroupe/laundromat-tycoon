@@ -7,5 +7,4 @@ To get started execute the following steps:
 5. Install the [Rojo VS-Code extension](https://marketplace.visualstudio.com/items?itemName=evaera.vscode-rojo)
 6. Run 'rojo plugin install' in the CL
 7. Init rojo using "Live-Syncing into Studio". For more help, check out [the Rojo documentation](https://rojo.space/docs/v7/getting-started/new-game/).
-8. Install the rojo plugin from the command bar
 9. Open your Roblox studio place and sync to VS Code using the plugin
