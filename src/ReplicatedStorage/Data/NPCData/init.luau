@@ -1,6 +1,7 @@
 export type NPCState = "DropOff" | "PickUp" | "Waiting"
 
 export type NPC = {
+	id: string?,
 	name: string?,
 	happiness: number,
 	rarity : "common" | "premium",

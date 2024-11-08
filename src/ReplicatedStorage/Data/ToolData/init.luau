@@ -11,7 +11,7 @@ export type ToolInfo = {
     assetName: string?,
     model: Tool?, 
     state: ToolState,
-    npc : NPC?
+    npcId : string?
 }
 
 return {}
