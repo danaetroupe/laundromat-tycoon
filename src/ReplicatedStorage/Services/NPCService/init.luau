@@ -70,8 +70,8 @@ function NPCService.SpawnNPC(player : Player, line : string, npc : NPC)
 			-- NPC got tired of waiting and walked out
 			if npc.state == "DropOff" then
 				NPCService.WalkOut(npc, true)
+				NPCService.UpdateLine(player, "dropoff")
 			end
-			NPCService.UpdateLine(player, "dropoff")
 		end)
 		coroutine.resume(leave)
 	end
@@ -168,7 +168,6 @@ function NPCService.GivePrompt(npc : NPC)
 				local tool = ToolService.GiveNewTool(player, "laundrybasket", npc)
 				local success = PlayerService.AssignKey(tool)
 				if success then
-					npc.state = "Waiting"
 					NPCService.WalkOut(npc, false)
 					NPCService.UpdateLine(player, "dropoff")
 					prompt:Destroy()
@@ -176,9 +175,11 @@ function NPCService.GivePrompt(npc : NPC)
 					ToolService.Destroy(tool)
 				end
 			elseif state == "PickUp" and key and keyState == "Ready" then
+				print("äctivated")
 				PlayerService.AddMoney(player)
 				PlayerService.ClearKey()
 				ToolService.Destroy(key)
+				prompt:Destroy()
 				NPCService.WalkOut(npc, true)
 				NPCService.UpdateLine(player, "pickup")
 				-- TODO: record satsifaction and whatnot... what events happen when they die

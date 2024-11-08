@@ -47,6 +47,7 @@ function ToolService.EquipExistingTool(player : Player, tool : ToolInfo, state :
 		end
 		-- Give tool to character
 		local character = player.Character or player.CharacterAdded:Wait()
+		tool.model.Parent = character
 		character.Humanoid:EquipTool(tool.model)
 		return tool
 	else

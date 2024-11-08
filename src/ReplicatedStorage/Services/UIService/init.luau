@@ -12,7 +12,6 @@ function UIService.createScope(object) : ScreenGui
     gui.ChildRemoved:Connect(function()
         if #gui:GetChildren() == 0 then
             gui:Destroy()
-            print('gui destroyed because no more children')
         end
     end)
 

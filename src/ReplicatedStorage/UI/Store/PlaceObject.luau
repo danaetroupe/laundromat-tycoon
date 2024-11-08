@@ -255,7 +255,6 @@ function PlaceObject.Init(button : ImageButton, objectName : string, buildValue 
         else
             -- Only set placeactive always true on computer
             placeActive = true
-            print(placeActive)
         end
     end)
 end
