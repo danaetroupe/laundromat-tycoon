@@ -54,22 +54,6 @@ end
 -- Spawn NPC and add to queue
 function NPCService.SpawnNPC(player : Player, line : string, npc : NPC)
     local endPart : Part = _Data[player]["tycoon"][line]
-    npc = NPCService.SpawnNewCharacter(player, _Data[player]["tycoon"].Entry.CFrame, npc)
-    if line == "pickup" then -- If npc picking up, change to pickup status
-        NPCService.ChangeState(npc, "PickUp")
-    else
-        local leave = coroutine.create(function()
-            task.wait(60)
-            -- NPC got tired of waiting and walked out
-            if npc.state == "DropOff" then
-                NPCService.WalkOut(npc, true)
-                NPCService.UpdateLine(player, "dropoff")
-            end
-        end)
-        coroutine.resume(leave)
-    end
-    -- Add to appropriate queue
-    table.insert(_Data[player][line], npc)
 	npc = NPCService.SpawnNewCharacter(player, _Data[player]["tycoon"].Entry.CFrame, npc)
 	if line == "pickup" then -- If npc picking up, change to pickup status
 		NPCService.ChangeState(npc, "PickUp")

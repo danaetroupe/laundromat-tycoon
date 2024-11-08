@@ -41,6 +41,7 @@ local function timer(object: Interactable)
 	object.prompt.Enabled = true
 end
 
+-- Create display if machine has display
 function InteractableService.Display(object: Interactable)
 	local display = object.model:FindFirstChild("Display")
 	if not display then
@@ -66,6 +67,7 @@ function InteractableService.Display(object: Interactable)
 	end
 end
 
+-- Clear machinde display if display
 function InteractableService.ClearDisplay(object)
 	local display = object.model:FindFirstChild("Display")
 	if not display then
@@ -76,11 +78,7 @@ function InteractableService.ClearDisplay(object)
 	display.DisplayGui.TextLabel.Text = ""
 end
 
-function InteractableService.RunCycle(object: Interactable): boolean
-	-- Check for player key
-	local objectState: MachineState = object.state
-	local key = PlayerService.GetKey(LocalPlayer)
-	local keyState = if key then key.state else nil
+-- Run machine cycle if applicable
 function InteractableService.RunCycle(object : Interactable) : boolean
     -- Check for player key
     local objectState : MachineState = object.state
@@ -101,9 +99,9 @@ function InteractableService.RunCycle(object : Interactable) : boolean
 			InteractableService.Display(object)
 		else
 			if keyState then
-				print(keyState .. " laundry does not go in " .. object.name)
+				message = keyState.. " laundry does not go in ".. object.name
 			else
-				print("Need " .. object.expectedLaundryState .. " laundry for " .. object.name)
+				message = "Need ".. object.expectedLaundryState " laundry for ".. object.name
 			end
 			return false
 		end
@@ -116,58 +114,23 @@ function InteractableService.RunCycle(object : Interactable) : boolean
 			object["state"] = "Empty"
 			return PlayerService.AssignKey(key)
 		else
-			print("Cannot load laundry with existing key.")
-			return false
+			message = "Machine already has laundry. Please unload."
 		end
 	else
 		error("Object state not recognized: " .. objectState)
 		return false
 	end
-	return true
-    -- Check for machine in progress.. do nothing
-    if objectState == "In Progress" then
-        return false
-    -- If machine is empty, check for expectedLaundry state and load machine
-    elseif objectState == "Empty" then
-        if key and keyState == object.expectedLaundryState then -- if empty and laundry dirty, start cycle
-            object["state"] = "In Progress"
-            ToolService.DestroyModel(key)
-            PlayerService.ClearKey()
-            InteractableService.Display(object)
-        else
-            if keyState then
-                message = keyState.. " laundry does not go in ".. object.name
-            else
-                message = "Need ".. object.expectedLaundryState " laundry for ".. object.name
-            end
-            return false
-        end
-    -- If complete, make sure no key exists 
-    elseif objectState == "Complete" then
-        if not key then
-            InteractableService.ClearDisplay(object)
-            key = ToolService.GiveTool(LocalPlayer, "laundrybasket")
-            ToolService.ChangeState(key, object.nextState)
-            object["state"] = "Empty"
-            return PlayerService.AssignKey(key)
-        else
-            message = "Machine already has laundry. Please unload."
-            return false
-        end
-    else
-        error("Object state not recognized: ".. objectState)
-        return false
-    end
-
-    -- Show message if applicable
+	-- Show message if applicable
     if message then 
         local messageFrame = Messages:createMessage(message)
                     UIService.createScope(message)
                     task.delay(3, function()
                         Messages.fade(messageFrame, 0)
                     end)
+		return false
     end
-    return true
+
+	return true
 end
 
 -- Create proximity prompt
