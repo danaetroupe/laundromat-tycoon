@@ -1,4 +1,5 @@
 -- Services
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
@@ -29,6 +30,12 @@ local _Data = {}
 function NPCService.Init(player : Player, active : boolean)
 	if not _Data[player] then
 		_Data[player] = {}
+
+        Players.PlayerRemoving:Connect(function(plr)
+            if player == plr then
+                _Data[player] = nil
+            end
+        end)
 	end
 
 	_Data[player]["active"] = active
@@ -56,7 +63,7 @@ function NPCService.SpawnNPC(player : Player, line : string, npc : NPC)
     local endPart : Part = _Data[player]["tycoon"][line]
 	npc = NPCService.SpawnNewCharacter(player, _Data[player]["tycoon"].Entry.CFrame, npc)
 	if line == "pickup" then -- If npc picking up, change to pickup status
-		NPCService.ChangeState(npc, "PickUp")
+		npc.state = "Pickup"
 	else
 		local leave = coroutine.create(function()
 			task.wait(60)
@@ -161,7 +168,7 @@ function NPCService.GivePrompt(npc : NPC)
 				local tool = ToolService.GiveNewTool(player, "laundrybasket", npc)
 				local success = PlayerService.AssignKey(tool)
 				if success then
-					NPCService.ChangeState(npc, "Waiting")
+					npc.state = "Waiting"
 					NPCService.WalkOut(npc, false)
 					NPCService.UpdateLine(player, "dropoff")
 					prompt:Destroy()

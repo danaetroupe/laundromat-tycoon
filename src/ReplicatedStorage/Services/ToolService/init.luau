@@ -22,13 +22,18 @@ local ToolService = {}
 
 -- Gives player tool and activates it
 function ToolService.GiveNewTool(player : Player, toolName : string, npc : NPC): table
-	local character = player.Character or player.CharacterAdded:Wait()
-	local humanoid = character.Humanoid
-	local tool : ToolInfo = table.clone(Tools.GetTool(toolName))
-	tool.npc = npc
-	tool.model = ModelService.GetModelFromStorage(tool.assetName, "Tools")
-	humanoid:EquipTool(tool.model)
-	return tool
+	if isServer then
+		local character = player.Character or player.CharacterAdded:Wait()
+		local humanoid = character.Humanoid
+		local tool : ToolInfo = table.clone(Tools.GetTool(toolName))
+		tool.npc = npc
+		tool.model = ModelService.GetModelFromStorage(tool.assetName, "Tools")
+		tool.model.Parent = character
+		humanoid:EquipTool(tool.model)
+		return tool
+	else
+		return ToolEvents.ExecuteOnServer:InvokeServer("GiveNewTool", player, toolName, npc)
+	end
 end
 
 -- Equips tool and returns new tool obj

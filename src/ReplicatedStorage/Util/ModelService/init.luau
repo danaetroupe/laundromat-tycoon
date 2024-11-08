@@ -38,7 +38,7 @@ function ModelService.GetModelFromStorage(name : string, path : string) : Model
         error("Model could not be found")
     end
 
-    return ModelService.CreateOnServer(model, workspace)
+    return ModelService.CreateOnServer(model)
 end
 
 return ModelService
