@@ -83,9 +83,9 @@ end
 -- Assigns tycoon to player
 function PlayerService.AssignToPlayer(player : Player, tycoon : Model) : PlayerData 
     local data : PlayerData = table.clone(PlayerDataModule)
-    data["player"] = player
-    data["tycoon"] = tycoon
-    PlayerEvents.ActiveToggled:Fire(data["player"], data["active"])
+    data.player = player
+    data.tycoon = tycoon
+    PlayerEvents.ActiveToggled:Fire(data.player, data.active)
 
     local folder = Instance.new("Folder") -- create folder to store temp assets
     folder.Name = player.Name
@@ -95,7 +95,7 @@ function PlayerService.AssignToPlayer(player : Player, tycoon : Model) : PlayerD
             folder:Destroy()
         end
     end)
-    data["temp"] = folder
+    data.temp = folder
 
     PlayerEvents.InitTycoon:FireClient(player, data)
 
@@ -131,15 +131,6 @@ function PlayerService.ToggleActive(data : PlayerData) : boolean
         data["active"] = not data["active"]
         PlayerEvents.ActiveToggled:Fire(data["player"], data["active"])
         return data["active"]
-    end
-end
-
--- Move item into temp storage
-function PlayerService.MoveToTemp(object, serverData) : nil
-    if isServer then
-        object.Parent = serverData["temp"]
-    else
-        return PlayerEvents.ExecuteOnServer:InvokeServer("MoveToTemp", object)
     end
 end
 
@@ -246,7 +237,7 @@ function PlayerService.MoveToWorld(tool : ToolInfo, position : Vector3) : nil
             -- Check to make sure player doesn't have existing key
             if not PlayerService.GetKey(LocalPlayer) then
                 ToolService._ReEnableTool(tool)
-                ToolService.EquipExistingTool(player,tool)
+                tool = ToolService.EquipExistingTool(player,tool)
                 PlayerService.AssignKey(tool)
                 prompt:Destroy()
             end

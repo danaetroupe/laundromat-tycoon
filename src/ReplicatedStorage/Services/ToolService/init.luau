@@ -21,80 +21,80 @@ local LocalPlayer = if not isServer then Players.LocalPlayer else nil
 local ToolService = {}
 
 -- Gives player tool and activates it
-function ToolService.GiveTool(player : Player, toolName : string, npc : NPC) : table
-    local character = player.Character or player.CharacterAdded:Wait()
-    local humanoid = character.Humanoid
-    local tool : ToolInfo = table.clone(Tools.GetTool(toolName))
-    tool.npc = npc
-    tool.model = ModelService.GetModelFromStorage(tool.assetName, "Tools")
-    humanoid:EquipTool(tool.model)
-    return tool
+function ToolService.GiveNewTool(player : Player, toolName : string, npc : NPC): table
+	local character = player.Character or player.CharacterAdded:Wait()
+	local humanoid = character.Humanoid
+	local tool : ToolInfo = table.clone(Tools.GetTool(toolName))
+	tool.npc = npc
+	tool.model = ModelService.GetModelFromStorage(tool.assetName, "Tools")
+	humanoid:EquipTool(tool.model)
+	return tool
 end
 
--- Client script to equip tool
-function ToolService.EquipExistingTool(player : Player, tool : ToolInfo)
-    if isServer then
-        local character = player.Character or player.CharacterAdded:Wait()
-        character.Humanoid:EquipTool(tool.model)
-    else
-        if not tool.model then
-            tool.model = ModelService.GetModelFromStorage(tool.assetName, "Tools")
-        end
-        ToolEvents.ExecuteOnServer:InvokeServer("EquipExistingTool", LocalPlayer, tool)
-    end
+-- Equips tool and returns new tool obj
+function ToolService.EquipExistingTool(player : Player, tool : ToolInfo, state : ToolState): ToolInfo
+	if isServer then
+		if state then
+			tool.state = state
+		end
+		if not tool.model then
+			tool.model = ModelService.GetModelFromStorage(tool.assetName, "Tools")
+		end
+		-- Give tool to character
+		local character = player.Character or player.CharacterAdded:Wait()
+		character.Humanoid:EquipTool(tool.model)
+		return tool
+	else
+		tool = ToolEvents.ExecuteOnServer:InvokeServer("EquipExistingTool", player, tool, state)
+		if tool.state == "Ready" then
+			ToolEvents.ToolReady:FireServer("pickup", tool.npc)
+		end
+		return tool
+	end
 end
 
-function ToolService.Destroy(toolData : ToolInfo) : nil
-    toolData.model:Destroy()
-    table.clear(toolData)
+function ToolService.Destroy(toolData : ToolInfo): nil
+	toolData.model:Destroy()
+	table.clear(toolData)
 end
 
 -- Associates an npc with the tool
-function ToolService.AssignNPC(data : ToolInfo, npc : NPC) : nil -- !!should npc be passed in as the model? 
-    data["npc"] = npc
+function ToolService.AssignNPC(data : ToolInfo, npc : NPC): nil -- !!should npc be passed in as the model?
+	data["npc"] = npc
 end
 
 -- Get tool state
 function ToolService.GetState(tool : ToolInfo) : ToolState
-    return tool["state"]
-end
-
--- Change tool state
-function ToolService.ChangeState(tool : ToolInfo, state : ToolState)
-    tool["state"] = state
-    if state == "Ready" then
-        NPCEvents.SpawnNPC:FireServer("pickup", tool.npc)
-    end
+	return tool["state"]
 end
 
 function ToolService.DestroyModel(tool : ToolInfo)
-    if isServer then
-        tool.model:Destroy()
-    else
-        ToolEvents.ExecuteOnServer:InvokeServer("DestroyModel", tool)
-    end
+	if isServer then
+		tool.model:Destroy()
+	else
+		ToolEvents.ExecuteOnServer:InvokeServer("DestroyModel", tool)
+	end
+	tool.model = nil
 end
 
 function ToolService.GetNPC(tool : ToolInfo) : NPC
-    return tool.npc
+	return tool.npc
 end
 
 function ToolService._ReEnableTool(tool : ToolInfo)
-    if isServer then
-        tool.model.NotHandle.Name = "Handle"
-        tool.model.PrimaryPart.Anchored = false
-    else
-        ToolEvents.ExecuteOnServer:InvokeServer("_ReEnableTool", tool)
-    end
+	if isServer then
+		tool.model.NotHandle.Name = "Handle"
+		tool.model.PrimaryPart.Anchored = false
+	else
+		ToolEvents.ExecuteOnServer:InvokeServer("_ReEnableTool", tool)
+	end
 end
 
 -- Allows server side communication
 if isServer then
-    ToolEvents.ExecuteOnServer.OnServerInvoke = function(_player, func, ...)
-        return ToolService[func](...)
-    end
+	ToolEvents.ExecuteOnServer.OnServerInvoke = function(_player, func, ...)
+		return ToolService[func](...)
+	end
 end
-
-
 
 return ToolService

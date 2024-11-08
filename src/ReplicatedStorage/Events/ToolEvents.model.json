@@ -4,6 +4,10 @@
         {
             "Name": "ExecuteOnServer",
             "ClassName": "RemoteFunction"
+        },
+        {
+            "Name": "ToolReady",
+            "ClassName": "RemoteEvent"
         }
     ]
 }

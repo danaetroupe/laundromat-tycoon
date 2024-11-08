@@ -20,7 +20,8 @@ export type InteractableObject = Object&{
     state: ObjectState,
     expectedLaundryState : LaundryState,
     nextState : LaundryState,
-    prompt: ProximityPrompt?
+    prompt: ProximityPrompt?,
+    tool : ToolData?
 }
 
 return {}
