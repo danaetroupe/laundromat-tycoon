@@ -93,10 +93,9 @@ end
 -- Spawns character in world and creates if necessary
 function NPCService.SpawnNewCharacter(player : Player, point : CFrameValue, data : NPC) : NPC
 	data = data or table.clone(NPCData)
-    local character : Model = data["character"]
-	if not character then
-		character = ModelService.GetModelFromStorage("NPC", "NPC")
-		local humanoid = character.Humanoid or character:WaitForChild("Humanoid")
+	if not data.character then
+		data.character = ModelService.GetModelFromStorage("NPC", "NPC")
+		local humanoid = data.character.Humanoid or data.character:WaitForChild("Humanoid")
 		local humDesc = humanoid:GetAppliedDescription()
 
 		humDesc.Face = OutfitData.GetRandomFromCategory("face")
@@ -106,11 +105,10 @@ function NPCService.SpawnNewCharacter(player : Player, point : CFrameValue, data
 		humanoid:ApplyDescription(humDesc)
 	end
 
-	PlayerService.MoveToNPCFolder(player, character)
-	character.HumanoidRootPart.CFrame = point -- Set to point
-	data.character = character
+	data.character.Parent = workspace
+	data.character.HumanoidRootPart.CFrame = point -- Set to point
 	data.player = player
-	data.id = HttpService:GenerateGUID(false)
+	data.id = if data.id then data.id else HttpService:GenerateGUID(false)
 	return data
 end
 
@@ -185,7 +183,7 @@ function NPCService.GivePrompt(npc : NPC)
 				else
 					ToolService.Destroy(tool)
 				end
-			elseif state == "PickUp" and key and keyState == "Ready" then
+			elseif state == "Pickup" and key and keyState == "Ready" then
 				PlayerService.AddMoney(player)
 				PlayerService.ClearKey()
 				ToolService.Destroy(key)
