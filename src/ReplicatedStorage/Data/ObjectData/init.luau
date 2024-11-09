@@ -21,7 +21,7 @@ export type InteractableObject = Object&{
     expectedLaundryState : LaundryState,
     nextState : LaundryState,
     prompt: ProximityPrompt?,
-    tool : ToolData?
+    tool : ToolData.ToolInfo?,
 }
 
 return {}

@@ -4,7 +4,7 @@ local UILabs = require(ReplicatedStorage.Packages.UILabs)
 
 return {
     controls = {
-        Amount = UILabs.Number(0)
+        Amount = UILabs.Number(0),
     },
     render = function(props : UILabs.GenericProps)
         local frame = Default.createButtons(script:GetChildren())
@@ -20,6 +20,10 @@ return {
 
         local coins = Default.createCoinDisplay(MoneyValue)
         coins.Parent = props.target
+
+        -- Set buttons to greyed out
+        Default.changeActive(frame, false)
+        Default.changeActive(frame, true, "Build")
 
         return function()
             frame:Destroy()

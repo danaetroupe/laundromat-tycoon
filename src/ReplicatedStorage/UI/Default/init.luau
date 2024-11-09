@@ -1,4 +1,6 @@
 local ContextActionService = game:GetService("ContextActionService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UIService = require(ReplicatedStorage.Services.UIService)
 local Default = {}
 
 local BUTTONS = {
@@ -113,10 +115,16 @@ function Default.createButtons(scripts)
                 _toggle(buttonInfo.Name)
             end
         end, false, KEYS[i])
+
     end
 
     buttons.Parent = frame
     return frame
+end
+
+-- Toggle button activity. Name is an optional paramaeter to disable a specific button
+function Default.changeActive(frame : Frame, active : boolean, name : string?)
+    UIService.changeButtonEnabled(frame.Buttons, active, name)
 end
 
 function Default.createCoinDisplay(value : IntValue)

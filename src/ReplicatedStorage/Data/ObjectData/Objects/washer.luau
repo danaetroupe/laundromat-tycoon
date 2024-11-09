@@ -14,7 +14,7 @@ local washer : InteractableObject = {
     model = nil,
     prompt = nil,
     expectedLaundryState = "Dirty",
-    nextState = "Clean"
+    nextState = "Clean",
 }
 
 return washer

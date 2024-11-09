@@ -6,6 +6,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local PlayerService = require(ReplicatedStorage.Services.PlayerService)
 local ToolService = require(ReplicatedStorage.Services.ToolService)
 local UIService = require(ReplicatedStorage.Services.UIService)
+local PlacementService = require(ReplicatedStorage.Util.PlacementService)
 
 -- Data
 local ObjectData = require(ReplicatedStorage.Data.ObjectData)
@@ -78,8 +79,68 @@ function InteractableService.ClearDisplay(object)
 	display.DisplayGui.TextLabel.Text = ""
 end
 
+function InteractableService.TableInteract(table : Interactable) : boolean
+	-- Check for player key
+    local objectState : MachineState = table.state
+    local key = PlayerService.GetKey(LocalPlayer)
+    local keyState = if key then key.state else nil
+    local message
+
+	-- Check for machine in progress.. do nothing
+	if objectState == "In Progress" then
+		return error("Table can never be in progress lol")
+	-- If machine is empty, check for expectedLaundry state and load machine
+	elseif objectState == "Empty" then
+		if key and keyState == table.expectedLaundryState then -- if empty and laundry dirty, start cycle
+			table.state = "Complete"
+			LocalPlayer.Character.Humanoid:UnequipTools()
+			key.model.Parent = workspace
+			local cf = PlacementService.CalcPlacementCFrame(table.model:FindFirstChild("Surface"), 
+				key.model, 
+				table.model.PrimaryPart.CFrame.Position + Vector3.new(0,table.model.PrimaryPart.Size.Y/2,0),
+				0)
+			key.model:PivotTo(cf)
+			table.tool = key
+			PlayerService.ClearKey()
+			table.prompt.HoldDuration = 10
+		else
+			if keyState then
+				message = "Cannot fold " ..keyState.. " laundry."
+			else
+				message = "Need laundry for ".. table.name
+			end
+		end
+	-- If complete, make sure no key exists
+	elseif objectState == "Complete" then
+		if not key then
+			key = ToolService.EquipExistingTool(LocalPlayer, table.tool, table.nextState)
+			table.tool = nil
+			table.state = "Empty"
+			table.prompt.HoldDuration = 0
+			return PlayerService.AssignKey(key)
+		else
+			message = "Table already has laundry. Please fold first."
+		end
+	else
+		error("Object state not recognized: " .. objectState)
+		return false
+	end
+	-- Show message if applicable
+    if message then 
+        local messageFrame = Messages.createMessage(message)
+		UIService.createScope(messageFrame)
+		task.delay(3, function()
+			Messages.fade(messageFrame, 0)
+		end)
+		return false
+    end
+
+	return true
+end
+
 -- Run machine cycle if applicable
 function InteractableService.RunCycle(object : Interactable) : boolean
+	if object.assetName == "foldingtable" then return InteractableService.TableInteract(object) end
     -- Check for player key
     local objectState : MachineState = object.state
     local key = PlayerService.GetKey(LocalPlayer)
@@ -138,7 +199,7 @@ function InteractableService.CreatePrompt(object: Interactable)
 	object.prompt.ObjectText = object.name
 	object.prompt.Parent = object.model
 
-	object.prompt.Triggered:Connect(function(trigger)
+	object.prompt.Triggered:Connect(function(_trigger)
 		InteractableService.RunCycle(object)
 	end)
 end
