@@ -100,9 +100,10 @@ function InteractableService.TableInteract(table : Interactable) : boolean
 				table.model.PrimaryPart.CFrame.Position + Vector3.new(0,table.model.PrimaryPart.Size.Y/2,0),
 				0)
 			key.model:PivotTo(cf)
+			key.model.PrimaryPart.Anchored = true
 			table.tool = key
 			PlayerService.ClearKey()
-			table.prompt.HoldDuration = 10
+			table.prompt.HoldDuration = 5
 		else
 			if keyState then
 				message = "Cannot fold " ..keyState.. " laundry."
@@ -113,6 +114,7 @@ function InteractableService.TableInteract(table : Interactable) : boolean
 	-- If complete, make sure no key exists
 	elseif objectState == "Complete" then
 		if not key then
+			table.tool.model.PrimaryPart.Anchored = false
 			key = ToolService.EquipExistingTool(LocalPlayer, table.tool, table.nextState)
 			table.tool = nil
 			table.state = "Empty"
@@ -162,7 +164,7 @@ function InteractableService.RunCycle(object : Interactable) : boolean
 			if keyState then
 				message = keyState.. " laundry does not go in ".. object.name
 			else
-				message = "Need ".. object.expectedLaundryState " laundry for ".. object.name
+				message = "Need ".. object.expectedLaundryState.. " laundry for ".. object.name
 			end
 		end
 	-- If complete, make sure no key exists

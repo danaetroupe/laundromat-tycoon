@@ -15,7 +15,7 @@ local table : InteractableObject = {
     model = nil,
     prompt = nil,
     expectedLaundryState = "Dry",
-    nextState = "Ready",
+    nextState = "Ready"
 }
 
 return table

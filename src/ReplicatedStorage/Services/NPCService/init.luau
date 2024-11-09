@@ -67,12 +67,12 @@ function NPCService.SpawnNPC(player : Player, line : string, npc : NPC)
     local endPart : Part = _Data[player]["tycoon"][line]
 	npc = NPCService.SpawnNewCharacter(player, _Data[player]["tycoon"].Entry.CFrame, npc)
 	if line == "pickup" then -- If npc picking up, change to pickup status
-		npc.state = "Pickup"
+		npc.state = "pickup"
 	else
 		local leave = coroutine.create(function()
 			task.wait(60)
 			-- NPC got tired of waiting and walked out
-			if npc.state == "DropOff" then
+			if npc.state == "dropoff" then
 				NPCService.WalkOut(npc, true)
 				NPCService.UpdateLine(player, "dropoff")
 			end
@@ -131,24 +131,18 @@ function NPCService.WalkCharacter(data : NPC, point : Vector3, rotation : Vector
 	end)
 end
 
-function NPCService.GetStatus(data : NPC) : string
-	return data["status"]
-end
-
+-- Destroy all NPCs in a table
 function NPCService.DestroyAll(npcs : {NPC}) : nil
 	for _, npc in npcs do
-		npc["character"]:Destroy()
+		npc.character:Destroy()
 	end
 end
 
-function NPCService.GetHumanoid(data) : Humanoid
-	return data["model"].Humanoid
-end
-
+--[[  May need to be deleted
 function NPCService.FaceForwards(npc : NPC, part : Part)
     local character : Model = npc["character"]
 	character:PivotTo(CFrame.lookAt(character.PrimaryPart.CFrame.Position, part.CFrame.LookVector))
-end
+end ]]
 
 -- Add to purgatory :( 
 function NPCService.AddToPurgatory(player : Player, npc : NPC)
@@ -171,11 +165,11 @@ function NPCService.GivePrompt(npc : NPC)
 			local key = PlayerService.GetKey(player)
 			local keyState = if key then ToolService.GetState(key) else nil
 			-- Check if npc is dropping off and player does not have key
-			if state == "DropOff" and not PlayerService.GetKey(player) then
+			if state == "dropoff" and not PlayerService.GetKey(player) then
 				local tool = ToolService.GiveNewTool(player, "laundrybasket", npc.id)
 				local success = PlayerService.AssignKey(tool)
 				if success then
-					npc.state = "Pickup"
+					npc.state = "pickup"
 					NPCService.WalkOut(npc, false)
 					NPCService.UpdateLine(player, "dropoff")
 					prompt:Destroy()
@@ -183,7 +177,7 @@ function NPCService.GivePrompt(npc : NPC)
 				else
 					ToolService.Destroy(tool)
 				end
-			elseif state == "Pickup" and key and keyState == "Ready" then
+			elseif state == "pickup" and key and keyState == "Ready" then
 				PlayerService.AddMoney(player)
 				PlayerService.ClearKey()
 				ToolService.Destroy(key)
@@ -196,11 +190,6 @@ function NPCService.GivePrompt(npc : NPC)
 	end
 end
 
--- Change NPC state
-function NPCService.ChangeState(npc : NPC, state : NPCState)
-	npc.state = state
-end
-
 -- Walk NPC out
 function NPCService.WalkOut(npc : NPC, destroy : boolean)
 	if isServer then
@@ -210,7 +199,7 @@ function NPCService.WalkOut(npc : NPC, destroy : boolean)
 		if destroy then
 			npc.character:Destroy()
 		else
-			npc.character.Parent = PlayerService.GetPlayerData(npc.player).temp
+			npc.character.Parent = ReplicatedStorage
 		end
 	else
 		NPCEvents.ExecuteOnServer:FireServer("WalkOut", npc, destroy)
@@ -220,7 +209,8 @@ end
 -- Update queue
 function NPCService.UpdateLine(player : Player, line : string) -- moves up line if event happens
 	if isServer then
-		table.remove(_Data[player][line], 1)
+		local npc : NPC = table.remove(_Data[player][line], 1)
+		npc.state = "dontdespawnpls"
 		if #_Data[player][line] >= 1 then -- check if queue is not empty
 			NPCService.GivePrompt(_Data[player][line][1])
 		end
@@ -233,12 +223,19 @@ function NPCService.UpdateLine(player : Player, line : string) -- moves up line 
 	end
 end
 
+-- Handles server-client communication
 if isServer then
 	NPCEvents.ExecuteOnServer.OnServerEvent:Connect(function(_player, func, ...)
 		NPCService[func](...)
 	end)
+else
+	-- Executes proximity prompt creations via client
+	NPCEvents.ExecuteOnClient.OnClientEvent:Connect(function(func : string, ...)
+    	NPCService[func](...)
+	end)
 end
 
+-- Spawn based on ID
 function NPCService.SpawnById(player : Player, id : string)
 	local npc
 	for i, data : NPC in _Data[player]["purgatory"] do

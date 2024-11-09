@@ -1,4 +1,4 @@
-export type NPCState = "DropOff" | "PickUp" | "Waiting"
+export type NPCState = "dropoff" | "pickup" | "Waiting"
 
 export type NPC = {
 	id: string?,
@@ -17,7 +17,7 @@ local data : NPC = {
 	character = nil,
 	status = nil,
 	player = nil,
-	state = "DropOff"
+	state = "dropoff"
 }
 
 return data
