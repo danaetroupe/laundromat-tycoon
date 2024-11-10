@@ -79,9 +79,22 @@ function InteractableService.ClearDisplay(object)
 	display.DisplayGui.TextLabel.Text = ""
 end
 
-function InteractableService.TableInteract(table : Interactable) : boolean
+function InteractableService._PlaceOnTop(object : Interactable, key : ToolInfo)
+	LocalPlayer.Character.Humanoid:UnequipTools()
+	key.model.Parent = workspace
+	local cf = PlacementService.CalcPlacementCFrame(object.model.PrimaryPart, 
+				key.model, 
+				object.model.PrimaryPart.CFrame.Position + Vector3.new(0,object.model.PrimaryPart.Size.Y/2,0),
+				0)	
+	key.model:PivotTo(cf)
+	key.model.PrimaryPart.Anchored = true
+	object.tool = key
+	PlayerService.ClearKey()
+end
+
+function InteractableService.TableInteract(tableObj : Interactable) : boolean
 	-- Check for player key
-    local objectState : MachineState = table.state
+    local objectState : MachineState = tableObj.state
     local key = PlayerService.GetKey(LocalPlayer)
     local keyState = if key then key.state else nil
     local message
@@ -91,34 +104,25 @@ function InteractableService.TableInteract(table : Interactable) : boolean
 		return error("Table can never be in progress lol")
 	-- If machine is empty, check for expectedLaundry state and load machine
 	elseif objectState == "Empty" then
-		if key and keyState == table.expectedLaundryState then -- if empty and laundry dirty, start cycle
-			table.state = "Complete"
-			LocalPlayer.Character.Humanoid:UnequipTools()
-			key.model.Parent = workspace
-			local cf = PlacementService.CalcPlacementCFrame(table.model:FindFirstChild("Surface"), 
-				key.model, 
-				table.model.PrimaryPart.CFrame.Position + Vector3.new(0,table.model.PrimaryPart.Size.Y/2,0),
-				0)
-			key.model:PivotTo(cf)
-			key.model.PrimaryPart.Anchored = true
-			table.tool = key
-			PlayerService.ClearKey()
-			table.prompt.HoldDuration = 5
+		if key and keyState == tableObj.expectedLaundryState then -- if empty and laundry dirty, start cycle
+			tableObj.state = "Complete"
+			InteractableService._PlaceOnTop(tableObj, key)
+			tableObj.prompt.HoldDuration = 5
 		else
 			if keyState then
 				message = "Cannot fold " ..keyState.. " laundry."
 			else
-				message = "Need laundry for ".. table.name
+				message = "Need laundry for ".. tableObj.name
 			end
 		end
 	-- If complete, make sure no key exists
 	elseif objectState == "Complete" then
 		if not key then
-			table.tool.model.PrimaryPart.Anchored = false
-			key = ToolService.EquipExistingTool(LocalPlayer, table.tool, table.nextState)
-			table.tool = nil
-			table.state = "Empty"
-			table.prompt.HoldDuration = 0
+			tableObj.tool.model.PrimaryPart.Anchored = false
+			key = ToolService.EquipExistingTool(LocalPlayer, tableObj.tool, tableObj.nextState)
+			tableObj.tool = nil
+			tableObj.state = "Empty"
+			tableObj.prompt.HoldDuration = 0
 			return PlayerService.AssignKey(key)
 		else
 			message = "Table already has laundry. Please fold first."
@@ -155,10 +159,8 @@ function InteractableService.RunCycle(object : Interactable) : boolean
 	-- If machine is empty, check for expectedLaundry state and load machine
 	elseif objectState == "Empty" then
 		if key and keyState == object.expectedLaundryState then -- if empty and laundry dirty, start cycle
-			object["state"] = "In Progress"
-			ToolService.DestroyModel(key)
-			object.tool = key
-			PlayerService.ClearKey()
+			object.state = "In Progress"
+			InteractableService._PlaceOnTop(object, key)
 			InteractableService.Display(object)
 		else
 			if keyState then
@@ -171,6 +173,7 @@ function InteractableService.RunCycle(object : Interactable) : boolean
 	elseif objectState == "Complete" then
 		if not key then
 			InteractableService.ClearDisplay(object)
+			key.model.PrimaryPart.Anchored = false
 			key = ToolService.EquipExistingTool(LocalPlayer, object.tool, object.nextState)
 			object.tool = nil
 			object["state"] = "Empty"

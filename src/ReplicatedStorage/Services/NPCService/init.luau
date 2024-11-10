@@ -177,7 +177,7 @@ function NPCService.GivePrompt(npc : NPC)
 				else
 					ToolService.Destroy(tool)
 				end
-			elseif state == "pickup" and key and keyState == "Ready" then
+			elseif state == "pickup" and key and keyState == "Folded" then
 				PlayerService.AddMoney(player)
 				PlayerService.ClearKey()
 				ToolService.Destroy(key)

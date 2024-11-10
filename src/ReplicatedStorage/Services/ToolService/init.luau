@@ -52,7 +52,7 @@ function ToolService.EquipExistingTool(player : Player, tool : ToolInfo, state :
 		return tool
 	else
 		tool = ToolEvents.ExecuteOnServer:InvokeServer("EquipExistingTool", player, tool, state)
-		if tool.state == "Ready" then
+		if tool.state == "Folded" then
 			ToolEvents.ToolReady:FireServer(tool.npcId)
 		end
 		return tool
