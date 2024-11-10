@@ -1,6 +1,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 export type MachineState = "Empty" | "In Progress" | "Complete"
-export type ObjectState = MachineState
+export type ShelfState = "Empty" | "Full" | "Unfilled"
+export type ObjectState = MachineState | ShelfState
 export type ObjectCategory = "Decoration" | "Amenity" 
 
 local ToolData = require(ReplicatedStorage.Data.ToolData)
@@ -11,7 +12,6 @@ export type Object = {
     currentLevel: number,
     maxLevel: number,
     cost: number,
-    cycleTime: number,
     timeRemaining: number,
     assetName: string,
     model: Model?,
@@ -21,9 +21,18 @@ export type Object = {
 export type InteractableObject = Object&{
     state: ObjectState,
     expectedLaundryState : LaundryState,
+    cycleTime: number,
     nextState : LaundryState,
     prompt: ProximityPrompt?,
     tool : ToolData.ToolInfo?,
+}
+
+export type Storage = Object&{
+    state : ShelfState,
+    addPrompt : ProximityPrompt?,
+    takePrompt : ProximityPrompt?,
+    spots : table,
+    spotCount : number
 }
 
 return {}

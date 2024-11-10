@@ -1,3 +1,5 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UIService = require(ReplicatedStorage.Services.UIService)
 local TweenService = game:GetService("TweenService")
 local Messages = {}
 
@@ -66,5 +68,14 @@ function Messages.fade(frame, transparency)
     -- Clean up frame
     frame:Destroy()
 end
+
+function Messages.showMessage(message)
+    local messageFrame = Messages.createMessage(message)
+		UIService.createScope(messageFrame)
+		task.delay(3, function()
+			Messages.fade(messageFrame, 0)
+		end)
+end
+
 
 return Messages

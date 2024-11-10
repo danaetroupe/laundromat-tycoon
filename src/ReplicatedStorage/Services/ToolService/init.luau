@@ -37,7 +37,7 @@ function ToolService.GiveNewTool(player : Player, toolName : string, id : string
 end
 
 -- Equips tool and returns new tool obj
-function ToolService.EquipExistingTool(player : Player, tool : ToolInfo, state : ToolState): ToolInfo
+function ToolService.EquipExistingTool(player : Player, tool : ToolInfo, state : ToolState?): ToolInfo
 	if isServer then
 		if state then
 			tool.state = state

@@ -20,6 +20,7 @@ local Messages = require(ReplicatedStorage.UI.Messages)
 -- Types
 type Object = ObjectData.Object
 type Interactable = ObjectData.InteractableObject
+type Storage = ObjectData.Storage
 type ToolInfo = ToolData.ToolInfo
 type MachineState = ObjectData.MachineState
 type LaundryState = ToolData.LaundryState
@@ -140,7 +141,6 @@ function InteractableService.TableInteract(tableObj : Interactable) : boolean
 		end)
 		return false
     end
-
 	return true
 end
 
@@ -173,7 +173,7 @@ function InteractableService.RunCycle(object : Interactable) : boolean
 	elseif objectState == "Complete" then
 		if not key then
 			InteractableService.ClearDisplay(object)
-			key.model.PrimaryPart.Anchored = false
+			object.tool.model.PrimaryPart.Anchored = false
 			key = ToolService.EquipExistingTool(LocalPlayer, object.tool, object.nextState)
 			object.tool = nil
 			object["state"] = "Empty"
@@ -187,19 +187,108 @@ function InteractableService.RunCycle(object : Interactable) : boolean
 	end
 	-- Show message if applicable
     if message then 
-        local messageFrame = Messages.createMessage(message)
-		UIService.createScope(messageFrame)
-		task.delay(3, function()
-			Messages.fade(messageFrame, 0)
-		end)
+        Messages.showMessage(message)
 		return false
     end
 
 	return true
 end
 
+function InteractableService.Interact(action : string, shelf : Storage) 
+	-- Check for player key
+    --local objectState : ObjectData.ShelfState = shelf.state
+    local key = PlayerService.GetKey(LocalPlayer)
+    local message
+
+	-- Check for machine in progress.. do nothing
+	if action == "pickup" then
+		if not key then 
+			for _, spot in shelf.spots do
+				if spot.tool then
+					spot.tool.model.PrimaryPart.Anchored = false
+					key = ToolService.EquipExistingTool(LocalPlayer, spot.tool)
+					PlayerService.AssignKey(key)
+					spot.tool = nil
+					shelf.spotCount -= 1
+					break
+				end
+			end
+			shelf.addPrompt.Enabled = true
+			if shelf.spotCount == 0 then 
+				shelf.takePrompt.Enabled = false
+			end
+		else
+			message = "Cannot pick up item with laundry in hand."
+		end
+	elseif action == "setdown" then
+		if key then
+			LocalPlayer.Character.Humanoid:UnequipTools()
+			key.model.Parent = workspace
+			for _, spot in shelf.spots do
+				if not spot.tool then
+					local cf = PlacementService.CalcPlacementCFrame(spot.part, key.model, spot.part.CFrame.Position, 0)
+					key.model:PivotTo(cf)
+					key.model.PrimaryPart.Anchored = true
+					spot.tool = key
+					shelf.spotCount += 1
+					PlayerService.ClearKey()
+					break
+				end
+			end
+			shelf.takePrompt.Enabled = true
+			-- Check to make sure it isn't full
+			if shelf.spotCount == #shelf.spots then
+				shelf.addPrompt.Enabled = false
+			end
+		else
+			message = "Do not have an item to set down."
+		end
+	else
+		message = "Action not recognized. GAME ERR"
+	end
+	-- Show message if applicable
+    if message then 
+        Messages.showMessage(message)
+		return false
+    end
+end
+
+-- Special case for shelf
+function InteractableService.CreateShelfPrompt(shelf : Storage)
+	shelf.addPrompt = Instance.new("ProximityPrompt")
+	shelf.addPrompt.ActionText = "Set Down"
+	shelf.addPrompt.Parent = shelf.model
+	shelf.addPrompt.KeyboardKeyCode = Enum.KeyCode.P
+
+	shelf.takePrompt = Instance.new("ProximityPrompt")
+	shelf.takePrompt.ActionText = "Pick Up"
+	shelf.takePrompt.Parent = shelf.model
+	shelf.takePrompt.Enabled = false -- there's nothing to pick up
+
+	for _, item : Part in shelf.model:GetChildren() do
+		if item:HasTag("Surface") then
+			table.insert(shelf.spots, {
+				part = item,
+				tool = nil
+			})
+		end
+	end
+
+	shelf.takePrompt.Triggered:Connect(function(_trigger)
+		InteractableService.Interact("pickup", shelf)
+	end)
+	shelf.addPrompt.Triggered:Connect(function(_trigger)
+		InteractableService.Interact("setdown", shelf)
+	end)
+end
+
 -- Create proximity prompt
 function InteractableService.CreatePrompt(object: Interactable)
+	-- Check if object is storage type
+	if object.name == "Shelf" then
+		InteractableService.CreateShelfPrompt(object) 
+		return 
+	end
 	object.prompt = Instance.new("ProximityPrompt")
 	object.prompt.ObjectText = object.name
 	object.prompt.Parent = object.model
