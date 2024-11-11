@@ -10,6 +10,11 @@ export type NPC = {
     state : NPCState
 }
 
+export type Employee = NPC&{
+	salary : number, -- cost per day,
+	upgradeCost: number
+}
+
 local data : NPC = {
 	name = nil,
 	happiness = 100,

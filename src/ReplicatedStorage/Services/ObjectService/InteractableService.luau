@@ -194,6 +194,7 @@ function InteractableService.RunCycle(object : Interactable) : boolean
 	return true
 end
 
+-- Run shelf interaction
 function InteractableService.Interact(action : string, shelf : Storage) 
 	-- Check for player key
     --local objectState : ObjectData.ShelfState = shelf.state
@@ -259,6 +260,7 @@ function InteractableService.CreateShelfPrompt(shelf : Storage)
 	shelf.addPrompt.ActionText = "Set Down"
 	shelf.addPrompt.Parent = shelf.model
 	shelf.addPrompt.KeyboardKeyCode = Enum.KeyCode.P
+	shelf.addPrompt.UIOffset = Vector2.new(0, 80)
 
 	shelf.takePrompt = Instance.new("ProximityPrompt")
 	shelf.takePrompt.ActionText = "Pick Up"
