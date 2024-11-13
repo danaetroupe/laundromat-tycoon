@@ -108,6 +108,8 @@ function InteractableService.TableInteract(tableObj : Interactable) : boolean
 		if key and keyState == tableObj.expectedLaundryState then -- if empty and laundry dirty, start cycle
 			tableObj.state = "Complete"
 			InteractableService._PlaceOnTop(tableObj, key)
+			tableObj.prompt:Destroy()
+			InteractableService.CreatePrompt(tableObj)
 			tableObj.prompt.HoldDuration = 5
 		else
 			if keyState then

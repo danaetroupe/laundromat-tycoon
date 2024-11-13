@@ -1,5 +1,7 @@
 -- Services
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 
 -- Modules
 local PlayerService = require(ReplicatedStorage.Services.PlayerService)
@@ -10,17 +12,22 @@ local ToolData = require(ReplicatedStorage.Data.ToolData)
 local Objects = require(ReplicatedStorage.Data.ObjectData.Objects)
 
 -- Events
+local ObjectEvents = ReplicatedStorage.Events.ObjectEvents
 
--- Constants
+-- Types
 type Object = ObjectData.Object
 type Interactable = ObjectData.InteractableObject
 type ToolInfo = ToolData.ToolInfo
 type MachineState = ObjectData.MachineState
 type LaundryState = ToolData.LaundryState
 
+-- Variables
+local isServer = RunService:IsServer()
+local LocalPlayer = Players.LocalPlayer
 
 -- Events
 local ObjectService = {}
+local _Data = {}
 
 -- GET PROPERTIES --------------------------------------------------------------------
 -- Get object state
@@ -46,12 +53,19 @@ end
 
 -- GAME FUNCTIONALITY ----------------------------------------------------------------
 -- Returns new data table of object name
-function ObjectService.CreateNew(name : string) : Object
-    -- runs on client
-    local data : Object = table.clone(Objects.GetObject(name))
-    local model = ReplicatedStorage.Assets.Objects:FindFirstChild(data["assetName"], true)
-    data.model = ModelService.CreateOnServer(model)
-    return data
+function ObjectService.CreateNew(name : string, player : Player?) : Object
+    if isServer then
+        local data : Object = table.clone(Objects.GetObject(name))
+        local model = ReplicatedStorage.Assets.Objects:FindFirstChild(data["assetName"], true)
+        data.model = ModelService.CreateOnServer(model)
+        if not _Data[player] then 
+            _Data[player] = {}
+        end
+        _Data[player][data.name] = data
+        return data
+    else
+        return ObjectEvents.ExecuteOnServer:InvokeServer("CreateNew", name, LocalPlayer)
+    end 
 end
 
 function ObjectService.CreateHighlight(model : Model, color : Color3) : Highlight
@@ -70,6 +84,13 @@ function ObjectService.CreateHighlight(model : Model, color : Color3) : Highligh
     -- Set color
     highlight.FillColor = color
     return highlight
+end
+
+-- Execute server function
+if isServer then
+	ObjectEvents.ExecuteOnServer.OnServerInvoke = function(_player, func, ...)
+        return ObjectService[func](...)
+    end
 end
 
 return ObjectService
