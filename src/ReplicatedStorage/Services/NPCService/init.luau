@@ -14,6 +14,9 @@ local ModelService = require(ReplicatedStorage.Util.ModelService)
 local NPCData = require(ReplicatedStorage.Data.NPCData)
 local OutfitData = require(ReplicatedStorage.Data.OutfitData)
 
+-- UI
+local Billboard = require(ReplicatedStorage.UI.Billboard)
+
 -- Events
 local MovementEvents = ReplicatedStorage.Events.MovementEvents
 local NPCEvents = ReplicatedStorage.Events.NPCEvents
@@ -22,7 +25,10 @@ local NPCEvents = ReplicatedStorage.Events.NPCEvents
 type NPC = NPCData.NPC
 type NPCState = NPCData.NPC
 
--- Events
+
+
+
+-- Variables
 local isServer = RunService:IsServer()
 local NPCService = {}
 local _Data = {}
@@ -63,16 +69,18 @@ function NPCService.Init(player : Player, active : boolean)
 end
 
 -- Spawn NPC and add to queue
-function NPCService.SpawnNPC(player : Player, line : string, npc : NPC)
+function NPCService.SpawnNPC(player : Player, line : string, npc : NPC?)
     local endPart : Part = _Data[player]["tycoon"][line]
 	npc = NPCService.SpawnNewCharacter(player, _Data[player]["tycoon"].Entry.CFrame, npc)
 	if line == "pickup" then -- If npc picking up, change to pickup status
 		npc.state = "pickup"
 	else
 		local leave = coroutine.create(function()
+			Billboard(npc.model, 0)
 			task.wait(60)
 			-- NPC got tired of waiting and walked out
 			if npc.state == "dropoff" then
+				Billboard(npc.model, 2)
 				npc.state = "leaving"
 				NPCService.WalkOut(npc, true)
 				NPCService.UpdateLine(player, "dropoff")
@@ -92,9 +100,9 @@ function NPCService.SpawnNPC(player : Player, line : string, npc : NPC)
 end
 
 -- Spawns character in world and creates if necessary
-function NPCService.SpawnNewCharacter(player : Player, point : CFrameValue, data : NPC) : NPC
+function NPCService.SpawnNewCharacter(player : Player, point : CFrameValue, data : NPC?) : NPC
 	data = data or table.clone(NPCData)
-	if not data.character then
+	if data and not data.character then
 		data.character = ModelService.GetModelFromStorage("NPC", "NPC")
 		local humanoid = data.character.Humanoid or data.character:WaitForChild("Humanoid")
 		local humDesc = humanoid:GetAppliedDescription()
@@ -115,7 +123,8 @@ end
 
 -- Walks character to point
 function NPCService.WalkCharacter(data : NPC, point : Vector3, rotation : Vector3)
-    local character : Model = data.character
+    if not data.character then return end
+	local character : Model = data.character
 	if not character then
 		error("Character not given.")
 		return
@@ -126,6 +135,7 @@ function NPCService.WalkCharacter(data : NPC, point : Vector3, rotation : Vector
 	local connect -- connection signal
 	connect = MovementEvents.MovementComplete.Event:Connect(function(char)
 		if char == character then
+			if not character.PrimaryPart then return end
 			character.PrimaryPart.Rotation = rotation
 			connect:Disconnect()
 		end
@@ -133,7 +143,7 @@ function NPCService.WalkCharacter(data : NPC, point : Vector3, rotation : Vector
 end
 
 -- Destroy all NPCs in a table
-function NPCService.DestroyAll(npcs : {NPC}) : nil
+function NPCService.DestroyAll(npcs : {NPC}) : ()
 	for _, npc in npcs do
 		npc.character:Destroy()
 	end
@@ -146,15 +156,16 @@ function NPCService.FaceForwards(npc : NPC, part : Part)
 end ]]
 
 -- Add to purgatory :( 
-function NPCService.AddToPurgatory(player : Player, npc : NPC)
+function NPCService.AddToPurgatory(player : Player, npc : NPC): ()
 	if isServer then
 		table.insert(_Data[player]["purgatory"], npc)
 	else
 		NPCEvents.ExecuteOnServer:FireServer("AddToPurgatory", player, npc)
 	end
 end
+
 -- Give NPC a proximity prompt
-function NPCService.GivePrompt(npc : NPC)
+function NPCService.GivePrompt(npc : NPC): ()
 	if isServer then
 		NPCEvents.ExecuteOnClient:FireClient(npc.player, "GivePrompt", npc)
 	else
@@ -192,9 +203,9 @@ function NPCService.GivePrompt(npc : NPC)
 end
 
 -- Walk NPC out
-function NPCService.WalkOut(npc : NPC, destroy : boolean)
+function NPCService.WalkOut(npc : NPC, destroy : boolean): ()
 	if isServer then
-		local part : Part = PlayerService.GetStartPoint(npc.player)
+		local part : Part = PlayerService.GetStartPoint(npc.player) :: Part
 		NPCService.WalkCharacter(npc, part.Position, part.Rotation)
 		task.wait(5)
 		if destroy then

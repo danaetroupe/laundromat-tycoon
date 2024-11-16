@@ -1,4 +1,9 @@
-export type NPCState = "dropoff" | "pickup" | "Waiting"
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local ToolData = require(ReplicatedStorage.Data.ToolData)
+type ToolInfo = ToolData.ToolInfo
+
+export type NPCState = "dropoff" | "pickup" | "leaving"
 
 export type NPC = {
 	id: string?,
@@ -12,7 +17,8 @@ export type NPC = {
 
 export type Employee = NPC&{
 	salary : number, -- cost per day,
-	upgradeCost: number
+	upgradeCost: number,
+	key : ToolInfo
 }
 
 local data : NPC = {

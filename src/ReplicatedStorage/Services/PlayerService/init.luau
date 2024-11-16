@@ -1,4 +1,3 @@
---!strict
 -- This function is equipped to modify tycoon data
 
 local ContextActionService = game:GetService("ContextActionService")
@@ -20,8 +19,8 @@ local SETDOWN = "SETDOWN"
 
 local placeImg = "rbxassetid://90664024735834"
 
-local isServer = RunService:IsServer()
-local LocalPlayer = if not isServer then Players.LocalPlayer else nil
+local isServer: boolean = RunService:IsServer()
+local LocalPlayer: Player = Players.LocalPlayer
 local PlayerService = {}
 
 -- GETTERS ------------------------------------------------------------------------------------
@@ -31,31 +30,29 @@ function PlayerService.GetPlayerData(player : Player) : PlayerData
 end
 
 -- Returns base part
-function PlayerService.GetBasePartFromPlayer(player : Player) : Part
-    return PlayerService.GetPlayerData(player).tycoon.Base
+function PlayerService.GetBasePartFromPlayer(player : Player) : Part?
+    local data: PlayerData  = PlayerService.GetPlayerData(player)
+    return if data.tycoon then data.tycoon:FindFirstChild("Base") :: Part? else nil
 end
 
 -- Returns base part from player data (use on server)
-function PlayerService.GetBasePartFromData(data : PlayerData) : Part
-    return data.tycoon.Base
+function PlayerService.GetBasePartFromData(data : PlayerData) : Part?
+    return if data.tycoon then data.tycoon:FindFirstChild("Base") :: Part? else nil
 end
 
 -- Gets entry point of tycoon for routing purposes
-function PlayerService.GetStartPoint(player : Player) : Part
-    return PlayerService.GetPlayerData(player)["tycoon"].Entry
+function PlayerService.GetStartPoint(player : Player) : Part?
+    local data: PlayerData  = PlayerService.GetPlayerData(player)
+    return if data.tycoon then data.tycoon:FindFirstChild("Entry") :: Part? else nil
 end
 
-function PlayerService.GetEndPoint(player : Player) : Part
-    return PlayerService.GetPlayerData(player)["tycoon"].Exit
-end
-
--- Get temp folder for storage
-function PlayerService.GetTempFolder(player : Player) : Folder
-    return PlayerService.GetPlayerData(player)["temp"]
+function PlayerService.GetEndPoint(player : Player) : Part?
+    local data: PlayerData  = PlayerService.GetPlayerData(player)
+    return if data.tycoon then data.tycoon:FindFirstChild("Exit") :: Part? else nil
 end
 
 -- Request current player key (typically followed by a request to clear key)
-function PlayerService.GetKey(player : Player) : ToolInfo
+function PlayerService.GetKey(player : Player) : ToolInfo?
     return PlayerService.GetPlayerData(player).key
 end
 
@@ -65,8 +62,8 @@ function PlayerService.GetSpawnRate(player : Player) : number
 end
 
 -- Get tycoon model
-function  PlayerService.GetTycoon(player : Player) : Model
-    return PlayerService.GetPlayerData(player)["tycoon"]
+function  PlayerService.GetTycoon(player : Player) : Model?
+    return PlayerService.GetPlayerData(player).tycoon
 end
 
 -- Get player money
@@ -90,7 +87,7 @@ function PlayerService.AssignToPlayer(player : Player, tycoon : Model) : PlayerD
     local folder = Instance.new("Folder") -- create folder to store temp assets
     folder.Name = player.Name
     folder.Parent = ReplicatedStorage.Temp
-    Players.PlayerRemoving:Connect(function(plr) -- set to destroy folder when leave
+    Players.PlayerRemoving:Connect(function(plr: Player) -- set to destroy folder when leave
         if player == plr then
             folder:Destroy()
         end
@@ -116,13 +113,6 @@ function PlayerService.StoreObject(data : PlayerData, model : Model)
     table.insert(data.baseObjects, model)
 end
 
--- Returns boolean to specify is part is in the baseObjects table
-function PlayerService.IsBaseObject(player : Player, obj : Model) : boolean
-    local playerData = PlayerService.GetPlayerData(player)
-    local baseObjects = playerData["tycoon"].Base.BaseObjects:GetChildren()
-    return if table.find(baseObjects, obj) then true else false
-end
-
 -- Toggles active value of playerdata
 function PlayerService.ToggleActive(data : PlayerData) : boolean
     if not isServer then
@@ -135,10 +125,10 @@ function PlayerService.ToggleActive(data : PlayerData) : boolean
 end
 
 -- Assign key (typically a tool)
-function PlayerService.AssignKey(key : Tool, serverData : PlayerData) : boolean
+function PlayerService.AssignKey(key : ToolInfo, serverData : PlayerData?) : boolean
     if isServer then
-        if serverData["key"] then return false end
-        serverData["key"] = key
+        if not serverData or serverData.key then return false end
+        serverData.key = key
         return true
     else
         ContextActionService:BindAction(SETDOWN, PlayerService._handleInput, true, Enum.KeyCode.P)
@@ -148,27 +138,36 @@ function PlayerService.AssignKey(key : Tool, serverData : PlayerData) : boolean
 end
 
 -- Accepts player data as parameter on server or player as paramater on client
-function PlayerService.ClearKey(player) : nil
+function PlayerService.ClearKey(data : PlayerData?) : ()
     if isServer then
-        player["key"] = nil
+        if data then 
+            data.key = nil 
+        end
     else
         ContextActionService:UnbindAction(SETDOWN)
         PlayerEvents.ExecuteOnServer:InvokeServer("ClearKey")
     end
 end
 
-function PlayerService.MoveToNPCFolder(player : Player, model : Model) : nil
-    model.Parent = PlayerService.GetPlayerData(player)["tycoon"]["NPCs"]
+function PlayerService.MoveToNPCFolder(player : Player, model : Model) : ()
+    local data: PlayerData = PlayerService.GetPlayerData(player)
+    local folder = if data.tycoon then data.tycoon:FindFirstChild("NPCs") :: Folder else Instance.new("Folder")
+    folder.Name = "NPCs"
+    folder.Parent = data.tycoon
+    model.Parent = folder
 end
 
 -- Update leaderstats value
-function PlayerService._UpdateLeaderstats(player : Player, value : number) : nil
-    local moneyVal : IntValue = player.leaderstats.Money
-    moneyVal.Value = value
+function PlayerService._UpdateLeaderstats(player : Player, value : number) : ()
+    local leaderstats = player:FindFirstChild("leaderstats")
+    if leaderstats then
+        local moneyVal = leaderstats:FindFirstChild("Money") :: IntValue
+        moneyVal.Value = value
+    end
 end
 
 -- Add money to player 
-function PlayerService.AddMoney(data : PlayerData) : nil
+function PlayerService.AddMoney(data : PlayerData) : ()
     if isServer then
         local newAmt = data.money + data.profit
         PlayerEvents.ChangeValue:Fire(data.player, "money", newAmt)
@@ -179,8 +178,9 @@ function PlayerService.AddMoney(data : PlayerData) : nil
 end
 
 -- Checks if player can purchase item, and if yes, then makes purchase
-function PlayerService.MakePurchase(cost : number, data : PlayerData) : boolean
+function PlayerService.MakePurchase(cost : number, data : PlayerData?) : boolean
     if isServer then
+        if not data then return error('Player data does not exist') end
         if data.money >= cost then
             local newAmt = data.money - cost
             PlayerEvents.ChangeValue:Fire(data.player, "money", newAmt)
@@ -193,15 +193,16 @@ function PlayerService.MakePurchase(cost : number, data : PlayerData) : boolean
     end
 end
 
-function PlayerService._isWithinBounds(position)
-    local floorPart = PlayerService.GetBasePartFromPlayer(LocalPlayer)
-    local floorSize = floorPart.Size
-    local floorPos = floorPart.Position
+function PlayerService._isWithinBounds(position : Vector3): ()
+    local floorPart: Part? = PlayerService.GetBasePartFromPlayer(LocalPlayer)
+    if not floorPart then return end
+    local floorSize: Vector3 = floorPart.Size
+    local floorPos: Vector3 = floorPart.Position
 
-    local xMin = floorPos.X - (floorSize.X / 2)
-    local xMax = floorPos.X + (floorSize.X / 2)
-    local zMin = floorPos.Z - (floorSize.Z / 2)
-    local zMax = floorPos.Z + (floorSize.Z / 2)
+    local xMin: number = floorPos.X - (floorSize.X / 2)
+    local xMax: number = floorPos.X + (floorSize.X / 2)
+    local zMin: number = floorPos.Z - (floorSize.Z / 2)
+    local zMax: number = floorPos.Z + (floorSize.Z / 2)
 
     return position.X >= xMin and position.X <= xMax and position.Z >= zMin and position.Z <= zMax
 end
@@ -209,10 +210,11 @@ end
 function PlayerService._handleInput(name, userInputState, _input)
     if userInputState == Enum.UserInputState.Begin and name == SETDOWN then
         -- Get player key and position
-        local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-        local lookVector = character.HumanoidRootPart.CFrame.LookVector
-        local position = character.HumanoidRootPart.Position + (lookVector * 2)
-        local key = PlayerService.GetKey(LocalPlayer)
+        local character: Model = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+        local hum: Part = character:WaitForChild("HumanoidRootPart") :: Part
+        local lookVector: Vector3 = hum.CFrame.LookVector
+        local position: Vector3 = hum.Position + (lookVector * 2)
+        local key: ToolInfo? = PlayerService.GetKey(LocalPlayer)
         --  Check if valid
         if key and PlayerService._isWithinBounds(position) then
             PlayerService.MoveToWorld(key, position)
@@ -220,15 +222,20 @@ function PlayerService._handleInput(name, userInputState, _input)
     end
 end
 
-function PlayerService.MoveToWorld(tool : ToolInfo, position : Vector3) : nil
+function PlayerService.MoveToWorld(tool : ToolInfo, position : Vector3) : ()
     if isServer then
-        tool.model.Handle.Name = "NotHandle"
+        if not tool.model then return end
+        local handle: Instance? = tool.model:FindFirstChild("Handle")
+        if not handle then return end
+        handle.Name = "NotHandle"
         tool.model.Parent = workspace
+        if not tool.model.PrimaryPart then return end
         tool.model.PrimaryPart.Anchored = true
     else
-        PlayerService.ClearKey(LocalPlayer)
+        PlayerService.ClearKey()
         -- Create prompt on client to pick basket back up
         local prompt = Instance.new("ProximityPrompt")
+        if not tool.model or tool.model.PrimaryPart then return end
         prompt.Parent = tool.model.PrimaryPart
         prompt.ObjectText = "Basket"
         prompt.ActionText = "Pick Up"
@@ -249,6 +256,7 @@ end
 -- Toggle via client
 function PlayerService.SetBuildState(status : boolean, playerdata : PlayerData?)
     if isServer then
+        if not playerdata then return end
         PlayerEvents.ChangeValue:Fire(playerdata.player, "isBuilding", status)
     else
         PlayerEvents.ExecuteOnServer:InvokeServer("SetBuildState", status)

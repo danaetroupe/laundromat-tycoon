@@ -6,6 +6,7 @@ export type ObjectCategory = "Decoration" | "Amenity"
 
 local ToolData = require(ReplicatedStorage.Data.ToolData)
 type LaundryState = ToolData.LaundryState
+type ToolInfo = ToolData.ToolInfo
 
 export type Object = {
     name: string,
@@ -31,7 +32,10 @@ export type Storage = Object&{
     state : ShelfState,
     addPrompt : ProximityPrompt?,
     takePrompt : ProximityPrompt?,
-    spots : table,
+    spots : {{
+        tool : ToolInfo,
+        part : Part
+    }},
     spotCount : number
 }
 

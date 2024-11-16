@@ -1,6 +1,7 @@
 -- Services
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TouchInputService = game:GetService("TouchInputService")
 
 -- Modules
 local PlayerService = require(ReplicatedStorage.Services.PlayerService)
@@ -33,19 +34,24 @@ local ROTATION_SPEED = 360
 
 local InteractableService = {}
 
-local function timer(object: Interactable)
-	object.prompt.Enabled = false
+local function timer(object: Interactable): ()
+	if object.prompt then 
+		object.prompt.Enabled = false
+	end
 	for i = object.cycleTime, 0, -1 do
 		object.timeRemaining = i
 		task.wait(1)
 	end
-	object.state = "Complete"
-	object.prompt.Enabled = true
+	if object.prompt then
+		object.state = "Complete"
+		object.prompt.Enabled = true
+	end
 end
 
 -- Create display if machine has display
-function InteractableService.Display(object: Interactable)
-	local display = object.model:FindFirstChild("Display")
+function InteractableService.Display(object: Interactable): ()
+	if not object.model then return end
+	local display: Instance? = object.model:FindFirstChild("Display")
 	if not display then
 		timer(object)
 		return
@@ -54,9 +60,10 @@ function InteractableService.Display(object: Interactable)
 	local time = coroutine.create(timer)
 	coroutine.resume(time, object)
 
-	local part: Part = display.Part
-	local decal: Decal = part.Decal
-	local text: TextLabel = display.DisplayGui.TextLabel
+	local part = display:FindFirstChild("Part") :: Part
+	local decal = part:FindFirstChild("Decal") :: Decal
+	local gui = display:FindFirstChild("DisplayGui") :: SurfaceGui
+	local text = gui:FindFirstChild("TextLabel") :: TextLabel
 
 	decal.Transparency = 0
 	decal.Texture = if object.name == "Washing Machine" then washingDecal else clothesDecal
@@ -80,9 +87,10 @@ function InteractableService.ClearDisplay(object)
 	display.DisplayGui.TextLabel.Text = ""
 end
 
-function InteractableService._PlaceOnTop(object : Interactable, key : ToolInfo)
+function InteractableService._PlaceOnTop(object : Interactable, key : ToolInfo): ()
 	LocalPlayer.Character.Humanoid:UnequipTools()
-	key.model.Parent = workspace
+	if not (key.model and key.model.PrimaryPart and object.model and object.model.PrimaryPart) then return end
+	key.model.Parent = object.model
 	local cf = PlacementService.CalcPlacementCFrame(object.model.PrimaryPart, 
 				key.model, 
 				object.model.PrimaryPart.CFrame.Position + Vector3.new(0,object.model.PrimaryPart.Size.Y/2,0),
@@ -95,10 +103,10 @@ end
 
 function InteractableService.TableInteract(tableObj : Interactable) : boolean
 	-- Check for player key
-    local objectState : MachineState = tableObj.state
-    local key = PlayerService.GetKey(LocalPlayer)
+    local objectState : MachineState = tableObj.state :: MachineState
+    local key: ToolInfo? = PlayerService.GetKey(LocalPlayer)
     local keyState = if key then key.state else nil
-    local message
+    local message: string
 
 	-- Check for machine in progress.. do nothing
 	if objectState == "In Progress" then
@@ -108,9 +116,11 @@ function InteractableService.TableInteract(tableObj : Interactable) : boolean
 		if key and keyState == tableObj.expectedLaundryState then -- if empty and laundry dirty, start cycle
 			tableObj.state = "Complete"
 			InteractableService._PlaceOnTop(tableObj, key)
-			tableObj.prompt:Destroy()
-			InteractableService.CreatePrompt(tableObj)
-			tableObj.prompt.HoldDuration = 5
+			if tableObj.prompt then
+				tableObj.prompt:Destroy()
+				InteractableService.CreatePrompt(tableObj)
+				tableObj.prompt.HoldDuration = 5
+			end
 		else
 			if keyState then
 				message = "Cannot fold " ..keyState.. " laundry."
@@ -121,11 +131,16 @@ function InteractableService.TableInteract(tableObj : Interactable) : boolean
 	-- If complete, make sure no key exists
 	elseif objectState == "Complete" then
 		if not key then
-			tableObj.tool.model.PrimaryPart.Anchored = false
+			if not tableObj.tool then return false end
+			if tableObj.tool and tableObj.tool.model and tableObj.tool.model.PrimaryPart then
+				tableObj.tool.model.PrimaryPart.Anchored = false
+			end
 			key = ToolService.EquipExistingTool(LocalPlayer, tableObj.tool, tableObj.nextState)
 			tableObj.tool = nil
 			tableObj.state = "Empty"
-			tableObj.prompt.HoldDuration = 0
+			if tableObj.prompt then 
+				tableObj.prompt.HoldDuration = 0 
+			end
 			return PlayerService.AssignKey(key)
 		else
 			message = "Table already has laundry. Please fold first."
@@ -197,18 +212,20 @@ function InteractableService.RunCycle(object : Interactable) : boolean
 end
 
 -- Run shelf interaction
-function InteractableService.Interact(action : string, shelf : Storage) 
+function InteractableService.Interact(action : string, shelf : Storage) : boolean
 	-- Check for player key
     --local objectState : ObjectData.ShelfState = shelf.state
-    local key = PlayerService.GetKey(LocalPlayer)
-    local message
-
+    local key: ToolInfo? = PlayerService.GetKey(LocalPlayer)
+    local message: string
+	if not (shelf.addPrompt and shelf.takePrompt) then return false end
 	-- Check for machine in progress.. do nothing
 	if action == "pickup" then
 		if not key then 
-			for _, spot in shelf.spots do
+			for _, spot: {tool : ToolInfo?, part : Part} in shelf.spots do
 				if spot.tool then
-					spot.tool.model.PrimaryPart.Anchored = false
+					if spot.tool.model and spot.tool.model.PrimaryPart then 
+						spot.tool.model.PrimaryPart.Anchored = false
+					end
 					key = ToolService.EquipExistingTool(LocalPlayer, spot.tool)
 					PlayerService.AssignKey(key)
 					spot.tool = nil
@@ -254,6 +271,7 @@ function InteractableService.Interact(action : string, shelf : Storage)
         Messages.showMessage(message)
 		return false
     end
+	return true
 end
 
 -- Special case for shelf
@@ -263,6 +281,9 @@ function InteractableService.CreateShelfPrompt(shelf : Storage)
 	shelf.addPrompt.Parent = shelf.model
 	shelf.addPrompt.KeyboardKeyCode = Enum.KeyCode.P
 	shelf.addPrompt.UIOffset = Vector2.new(0, 80)
+
+	local prompt = Instance.new("ProximityPrompt")
+	prompt.ActionText = "Set Down"
 
 	shelf.takePrompt = Instance.new("ProximityPrompt")
 	shelf.takePrompt.ActionText = "Pick Up"
@@ -293,13 +314,19 @@ function InteractableService.CreatePrompt(object: Interactable)
 		InteractableService.CreateShelfPrompt(object) 
 		return 
 	end
-	object.prompt = Instance.new("ProximityPrompt")
-	object.prompt.ObjectText = object.name
-	object.prompt.Parent = object.model
+	local prompt = Instance.new("ProximityPrompt")
+	prompt.ObjectText = object.name
+	prompt.Parent = object.model
+	if object.model and object.model.PrimaryPart then 
+		local x  = object.model.PrimaryPart.Size.X 
+		local z  = object.model.PrimaryPart.Size.Z
+		prompt.MaxActivationDistance = (x+z)/2
+	end
 
-	object.prompt.Triggered:Connect(function(_trigger)
+	prompt.Triggered:Connect(function(_trigger)
 		InteractableService.RunCycle(object)
 	end)
+	object.prompt = prompt
 end
 
 return InteractableService

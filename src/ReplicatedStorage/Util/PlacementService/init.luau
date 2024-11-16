@@ -48,7 +48,7 @@ function PlacementService._CalcSurface(data: table, surface: Enum.NormalId): Enu
 end
 
 -- Calculates base size in world space for placement
-function PlacementService._CalcBase(base: Part, surface: Enum.NormalId)
+function PlacementService._CalcBase(base: Part | BasePart, surface: Enum.NormalId)
 	local canvasSize = base.Size
 	surface = surface or Enum.NormalId.Top
 
@@ -74,10 +74,10 @@ end
 
 -- Calculates the CFrame of the Object
 function PlacementService.CalcPlacementCFrame(
-	base: Part,
+	base: Part | BasePart,
 	model: Model,
 	position: Vector3,
-	rotation: Vector3
+	rotation: number
 ): CFrameValue
 	-- use other method to get info about the surface
 	local cf, size = PlacementService._CalcBase(base)

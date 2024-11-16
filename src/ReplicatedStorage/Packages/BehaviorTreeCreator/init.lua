@@ -41,7 +41,6 @@ function TreeCreator:Create(treeFolder)
 	end
 end
 
-
 function TreeCreator:RegisterSharedBlackboard(index,tab)
 	assert(index and tab and typeof(index) == "string" and typeof(tab) == "table","RegisterSharedBlackboard takes two arguments in the form of [string] index,[table] table")
 	BehaviorTree3.SharedBlackboards[index] = tab

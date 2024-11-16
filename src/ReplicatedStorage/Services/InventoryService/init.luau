@@ -1,5 +1,4 @@
 -- Service4s
-local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
@@ -17,17 +16,17 @@ local InventoryEvents = ReplicatedStorage.Events.InventoryEvents
 type Object = ObjectData.Object
 
 -- Constants
-local LocalPlayer = Players.LocalPlayer
 local isServer = RunService:IsServer()
 
 local InventoryService = {}
 
 -- Gets all objects in inventory 
-function InventoryService.GetInventory() : {Object}
+function InventoryService.GetInventory() : {Object}?
     if not isServer then
         return InventoryEvents.GetInventory:FireServer()
     else
-        print("Cannot retreive inventory from client")
+        print("Trying to retreive inventory from client")
+        return nil
     end
 end
 

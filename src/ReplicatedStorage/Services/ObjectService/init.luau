@@ -35,18 +35,18 @@ function ObjectService.GetState(object : Object) : MachineState
 end
 
 -- Gets object model
-function ObjectService.GetModel(data : table) : Model
-    return data["model"]
+function ObjectService.GetModel(data : Object) : Model?
+    return data.model
 end
 
 -- Get names of all the objects
-function ObjectService.GetNames() : table
+function ObjectService.GetNames() : {string}
     return Objects.GetObjectNames()
 end
 
 -- Given a data table, get the visual object name
-function ObjectService.GetName(data : table) : string
-    return data["name"]
+function ObjectService.GetName(data : Object) : string
+    return data.name
 end
 
 
