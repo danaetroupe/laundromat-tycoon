@@ -27,6 +27,8 @@ local basePart : Part = nil
 local objectData : Object = nil
 local buildPanel : Frame = nil
 local isBuilding : BoolValue = nil
+local isEditing : BoolValue = nil
+local moveObj : Model = nil
 
 local ROTATE = "Rotate"
 local QUIT = "Quit"
@@ -121,6 +123,7 @@ local function show(cf : CFrame)
     ObjectService.CreateHighlight(currModel, color)
 end
 
+-- End object placement
 function PlaceObject.quit()
     placeActive = false
     if currModel then 
@@ -131,6 +134,8 @@ function PlaceObject.quit()
     ContextActionService:UnbindAction(ROTATE)
     ContextActionService:UnbindAction(QUIT)
     Mouse.TargetFilter = nil
+    moveObj = nil
+    objectData = nil
 
     isBuilding.Value = false
 end
@@ -147,17 +152,23 @@ local function handleInput(name, userInputState, _input)
     -- Handle placement
     elseif name == PLACE then
         -- Check object can be placed
-        if PlacementService.IsColliding(currModel) or not PlayerService.MakePurchase(objectData.cost) then return end
-        local model = ObjectService.GetModel(objectData)
+        if PlacementService.IsColliding(currModel) then return end
+        if not isEditing.Value and not PlayerService.MakePurchase(objectData.cost) then return end
+        local model = if isEditing.Value then moveObj else ObjectService.GetModel(objectData)
         PlacementService.Place(model, currModel.PrimaryPart.CFrame, basePart)
+        PlaceObject.InitEditObject(model)
         -- Check if object is interactable
-        if objectData.state then 
+        if objectData and objectData.state then 
             --Create proximity prompt
             InteractableService.CreatePrompt(objectData)
         end
         -- Reset data/create new object
-        createNewObj()
-        show()
+        if not isEditing.Value then
+            createNewObj()
+            show()
+        else
+            PlaceObject.quit()
+        end
     elseif name == MOUSEUP then
         placeActive = false
         ContextActionService:UnbindAction(MOUSEUP)
@@ -225,10 +236,51 @@ local function showButtons()
     end)
 end
 
+function PlaceObject.InitEditObject(object : Model) 
+    local clickDetector = Instance.new("ClickDetector")
+    clickDetector.Parent = object
 
-function PlaceObject.Init(button : ImageButton, objectName : string, buildValue : BoolValue) -- Gives functionality to "Place" dev button
+    -- Check for hover
+    clickDetector.MouseHoverEnter:Connect(function()
+        if not isEditing.Value then return end
+        local highlight = ObjectService.CreateHighlight(object, Color3.new(1,1,1))
+        clickDetector.MouseHoverLeave:Connect(function()
+            highlight:Destroy()
+        end)
+    end)
+
+    -- Check for start moving
+    clickDetector.MouseClick:Connect(function()
+        if not isEditing.Value then return end
+        isEditing.Value = true
+        moveObj = object
+        basePart = PlayerService.GetBasePartFromPlayer(LocalPlayer)
+        Mouse.TargetFilter = basePart.BaseObjects
+        currModel = object:Clone()
+        currModel.Parent = Mouse.TargetFilter
+
+        -- Bind actions 
+        ContextActionService:BindAction(ROTATE, handleInput, false, Enum.KeyCode.R)
+        ContextActionService:BindAction(QUIT, handleInput, false, Enum.KeyCode.Q)
+        ContextActionService:BindAction(PLACE, handleInput, false, Enum.UserInputType.MouseButton1) 
+
+        -- Enable mobile buttons
+        if UserInputService.TouchEnabled then 
+            -- Place object
+            local cf = PlacementService.CalcPlacementCFrame(basePart, currModel, LocalPlayer.Character.HumanoidRootPart.CFrame.Position + Vector3.new(4, 0, 0), rotation)
+            show(cf)
+            showButtons() -- Show buttons
+        else
+            -- Only set placeactive always true on computer
+            placeActive = true
+        end
+    end)
+end
+
+function PlaceObject.Init(button : ImageButton, objectName : string, buildValue : BoolValue, editValue : BoolValue) -- Gives functionality to "Place" dev button
+    isBuilding = buildValue
+    isEditing = editValue
     button.Activated:Connect(function()
-        isBuilding = buildValue
         -- Delete existing values
         handleInput(QUIT, Enum.UserInputState.Begin)
         isBuilding.Value = true

@@ -2,9 +2,8 @@
     "ClassName" : "Folder",
     "Children": [
         {
-            "Name": "CreatePrompt",
-            "ClassName": "RemoteEvent"
+            "Name": "ExecuteOnServer",
+            "ClassName": "RemoteFunction"
         }
-        
     ]
 }
