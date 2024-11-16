@@ -84,7 +84,8 @@ function NPCService.SpawnNPC(player : Player, line : string, npc : NPC)
 	table.insert(_Data[player][line], npc)
 
 	-- Walk to line position
-    local pos = endPart.Position + Vector3.new(1, 0, 0) * 2 * (#_Data[player][line]-1)
+	local vector = if npc.character.PrimaryPart.CFrame.Position.X > endPart.Position.X then 1 else -1
+    local pos = endPart.Position + Vector3.new(vector, 0, 0) * 2 * (#_Data[player][line]-1)
 	NPCService.WalkCharacter(npc, pos, endPart.Rotation)
 	if #_Data[player][line] == 1 then
 		NPCService.GivePrompt(npc)
@@ -138,12 +139,6 @@ function NPCService.DestroyAll(npcs : {NPC}) : nil
 		npc.character:Destroy()
 	end
 end
-
---[[  May need to be deleted
-function NPCService.FaceForwards(npc : NPC, part : Part)
-    local character : Model = npc["character"]
-	character:PivotTo(CFrame.lookAt(character.PrimaryPart.CFrame.Position, part.CFrame.LookVector))
-end ]]
 
 -- Add to purgatory :( 
 function NPCService.AddToPurgatory(player : Player, npc : NPC)
