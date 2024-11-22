@@ -49,7 +49,7 @@ function TutorialService.Start()
     TutorialText = Instance.new("StringValue")
     TutorialFrame = Tutorial.CreatePanel(TutorialText)
     local _target = UIService.createScope(TutorialFrame)
-    ContextActionService:BindAction("Advance", TutorialService.NextStage, false, Enum.UserInputType.MouseButton1)
+    ContextActionService:BindAction("Advance", TutorialService.NextStage, false, Enum.UserInputType.MouseButton1, Enum.UserInputType.Touch)
     TutorialService.NextStage(nil, Enum.UserInputState.Begin)
     --[[
     POSSIBLE STEPS: 
@@ -68,6 +68,7 @@ end
 
 function TutorialService.NextStage(_name, state, _input)
     if state ~= Enum.UserInputState.Begin then return end
+    if textLabel.T
     local currStage = LocalPlayer:GetAttribute("TutorialStage") + 1
     LocalPlayer:SetAttribute("TutorialStage", currStage)
     if not StageInfo[currStage] then -- End tutorial
@@ -83,7 +84,7 @@ function TutorialService.NextStage(_name, state, _input)
         StageInfo[currStage].Execute()
     end
     if StageInfo[currStage].CanClickForward then
-        ContextActionService:BindAction("Advance", TutorialService.NextStage, false, Enum.UserInputType.MouseButton1)
+        ContextActionService:BindAction("Advance", TutorialService.NextStage, false, Enum.UserInputType.MouseButton1, Enum.UserInputType.Touch)
     elseif StageInfo[currStage].CanClickForward == false  then
         ContextActionService:UnbindAction("Advance")
     end
