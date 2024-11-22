@@ -11,7 +11,6 @@ type NPC = NPCData.NPC
 
 -- Returns a billboard gui to be parented to an npc
 return function(model : Model, image : number)  
-    print('created')
     local billboardGui = Instance.new("BillboardGui")
     billboardGui.Name = "BillboardGui"
     billboardGui.Active = true

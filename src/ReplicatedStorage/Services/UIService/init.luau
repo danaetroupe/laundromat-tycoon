@@ -35,4 +35,23 @@ function UIService.changeButtonEnabled(folder, active : boolean, name : string)
     end
 end
 
+local typing -- todo: hacky fix may need to come back later
+local label
+function UIService.TypingEffect(textLabel, text, speed)
+    if typing and textLabel == label then 
+        coroutine.close(typing)
+    end
+    label = textLabel
+    typing = coroutine.create(function()
+        speed = speed or 0.08
+        local i = 1
+        while i <= #text do
+            textLabel.Text = string.sub(text, 1, i)
+            task.wait(speed)
+            i += 1
+        end
+    end)
+    coroutine.resume(typing)
+end
+
 return UIService

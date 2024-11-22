@@ -14,6 +14,7 @@ function PlacementService.Init(basePart: Part)
 	local objectsFolder = Instance.new("Folder")
 	objectsFolder.Name = "BaseObjects"
 	objectsFolder.Parent = basePart
+	return objectsFolder
 end
 
 -- Place Object In World

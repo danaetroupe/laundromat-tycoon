@@ -124,7 +124,7 @@ local function _createIcon(objectName : string, money : number)
     local itemCost = Objects.GetProperty(objectName, "cost")
 
     local icon = Instance.new("ImageButton")
-    icon.Name = "Icon"
+    icon.Name = objectName
     icon.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     icon.BorderColor3 = Color3.fromRGB(0, 0, 0)
     icon.BorderSizePixel = 0
@@ -225,6 +225,29 @@ function Store.updateIconValues(frame : Frame, moneyVal : number)
         local cost = icon:GetAttribute("cost")
         icon.Price.TextColor3 = if cost <= moneyVal then DEFAULT_COLOR else ERROR_COLOR
     end
+end
+
+function Store.highlightIcon(store : ScrollingFrame, iconName : string) : (Frame, ImageLabel)
+    local icon : Frame = store:FindFirstChild(iconName)
+    store.ScrollingEnabled = false
+
+    local highlight = Instance.new("Frame")
+    highlight.Size = UDim2.fromOffset(icon.AbsoluteSize.X, icon.AbsoluteSize.Y)
+    highlight.Position = UDim2.fromOffset(icon.AbsolutePosition.X, icon.AbsolutePosition.Y)
+    highlight.BackgroundTransparency = 1
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Parent = highlight
+    stroke.Thickness = 50000
+    stroke.Transparency = 0.2
+
+    local arrow = Instance.new("ImageLabel")
+    arrow.Size = UDim2.fromOffset(icon.AbsoluteSize.X, icon.AbsoluteSize.Y)
+    arrow.Position = UDim2.fromOffset(icon.AbsolutePosition.X, icon.AbsolutePosition.Y+icon.AbsoluteSize.Y+10)
+    arrow.Image = "rbxassetid://94390079914087"
+    arrow.BackgroundTransparency = 1
+    -- Alt + Shift + A
+    return highlight, arrow
 end
 
 return Store

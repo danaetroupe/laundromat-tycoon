@@ -153,7 +153,7 @@ local function handleInput(name, userInputState, _input)
     elseif name == PLACE then
         -- Check object can be placed
         if PlacementService.IsColliding(currModel) then return end
-        if not isEditing.Value and not PlayerService.MakePurchase(objectData.cost) then return end
+        if not isEditing.Value and not PlayerService.MakePurchase(LocalPlayer, objectData.cost) then return end
         local model = if isEditing.Value then moveObj else ObjectService.GetModel(objectData)
         PlacementService.Place(model, currModel.PrimaryPart.CFrame, basePart)
         PlaceObject.InitEditObject(model)

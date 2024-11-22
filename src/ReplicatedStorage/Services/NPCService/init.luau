@@ -25,9 +25,6 @@ local NPCEvents = ReplicatedStorage.Events.NPCEvents
 type NPC = NPCData.NPC
 type NPCState = NPCData.NPC
 
-
-
-
 -- Variables
 local isServer = RunService:IsServer()
 local NPCService = {}
@@ -40,7 +37,6 @@ function NPCService.Init(player : Player, active : boolean)
 
         Players.PlayerRemoving:Connect(function(plr)
             if player == plr then
-				print('wtf!')
                 _Data[player] = nil
             end
         end)
@@ -145,6 +141,7 @@ end
 
 -- Destroy all NPCs in a table
 function NPCService.DestroyAll(npcs : {NPC}) : ()
+	if not npcs then return end
 	for _, npc in npcs do
 		npc.character:Destroy()
 	end

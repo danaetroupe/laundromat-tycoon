@@ -15,6 +15,10 @@ return {
         local keybinds = Store.createBuildKeybinds()
         keybinds.Parent = props.target
 
+        local highlight, arrow = Store.highlightIcon(buildStore, "dryer")
+        highlight.Parent = props.target
+        arrow.Parent = props.target
+
         props.subscribe(function(_values, info)
             UILabs.ListenControl(info.PlayerMoney, function(newValue)
                 Store.updateIconValues(buildStore, newValue)
