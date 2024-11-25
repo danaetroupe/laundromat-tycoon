@@ -7,7 +7,7 @@ export type PlayerData = {
     money: number,
 	player: Player,
 	tycoon: Model?,
-	baseObjects: table,
+	baseObjects: {},
 	active: boolean,
 	key: ToolInfo?,
 	spawn_rate : number,

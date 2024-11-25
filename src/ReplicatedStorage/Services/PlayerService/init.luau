@@ -81,7 +81,7 @@ end
 
 -- GAME FUNCTIONALITY -------------------------------------------------------------------------
 -- Assigns tycoon to player
-function PlayerService.AssignToPlayer(player : Player, tycoon : Model) : PlayerData 
+function PlayerService.AssignToPlayer(player : Player, tycoon : Model) : ()
     local data : PlayerData = table.clone(PlayerDataModule)
     data.player = player
     data.tycoon = tycoon
@@ -90,7 +90,7 @@ function PlayerService.AssignToPlayer(player : Player, tycoon : Model) : PlayerD
     local folder = Instance.new("Folder") -- create folder to store temp assets
     folder.Name = player.Name
     folder.Parent = ReplicatedStorage.Temp
-    local baseObjects = PlacementService.Init(tycoon.Base)
+    local baseObjects = PlacementService.Init(tycoon:FindFirstChild("Base") :: Part)
     Players.PlayerRemoving:Connect(function(plr: Player) -- set to destroy folder when leave
         if player == plr then
             folder:Destroy()
@@ -266,11 +266,11 @@ if isServer then
     end
 
     -- Places object on server side
-    PlacementEvents.InvokePlacement.OnServerEvent:Connect(function(player : Player, model : Model, cf : CFrame) : nil
+    PlacementEvents.InvokePlacement.OnServerEvent:Connect(function(player : Player, model : Model, cf : CFrame) : ()
         local data = PlayerInfo[player]
         if data then
             table.insert(data.baseObjects, model)
-            PlacementService.Place(model, cf, PlayerService.GetBasePartFromData(PlayerInfo[player]))
+            PlacementService.Place(model, cf, PlayerService.GetBasePartFromData(PlayerInfo[player]) :: Part)
         end
     end)
 end

@@ -18,7 +18,7 @@ function UIService.createScope(object) : ScreenGui
     return gui
 end
 
-function UIService.changeButtonEnabled(folder, active : boolean, name : string)
+function UIService.changeButtonEnabled(folder, active : boolean, name : string?)
     if name then
         local button = folder:FindFirstChild(name)
         if button:IsA("ImageButton") then
@@ -36,12 +36,21 @@ function UIService.changeButtonEnabled(folder, active : boolean, name : string)
 end
 
 local typing -- todo: hacky fix may need to come back later
-local label
-function UIService.TypingEffect(textLabel, text, speed)
-    if typing and textLabel == label then 
-        coroutine.close(typing)
+function UIService.TypingEffect(textLabel, text, speed : number?, complete : BoolValue?)
+    if complete then
+        local disconnect
+        disconnect = complete.Changed:Connect(function(value)
+            if value then
+                if typing then
+                    coroutine.close(typing)
+                end
+                textLabel.Text = text
+                typing = nil
+                disconnect:Disconnect()
+            end
+        end)
     end
-    label = textLabel
+
     typing = coroutine.create(function()
         speed = speed or 0.08
         local i = 1
@@ -50,6 +59,10 @@ function UIService.TypingEffect(textLabel, text, speed)
             task.wait(speed)
             i += 1
         end
+        if complete then 
+            complete.Value = true 
+        end
+        typing = nil
     end)
     coroutine.resume(typing)
 end

@@ -18,9 +18,9 @@ function PlacementService.Init(basePart: Part)
 end
 
 -- Place Object In World
-function PlacementService.Place(model: Model, cf: CFrame, basePart: Part): nil
+function PlacementService.Place(model: Model, cf: CFrame, basePart: Part): ()
 	if isServer then
-		model.Parent = basePart.BaseObjects
+		model.Parent = basePart:FindFirstChild("BaseObjects")
 		model:PivotTo(cf)
 	else
 		PlacementEvents.InvokePlacement:FireServer(model, cf)
@@ -28,10 +28,10 @@ function PlacementService.Place(model: Model, cf: CFrame, basePart: Part): nil
 end
 
 -- Calculate placement surface
-function PlacementService._CalcSurface(data: table, surface: Enum.NormalId): Enum.NormalId
+function PlacementService._CalcSurface(data: {}, surface: Enum.NormalId): Enum.NormalId
 	local surfaceType = data["surface"]
 	if surfaceType then
-		if surface == "Top" then
+		if surface == Enum.NormalId.Top then
 			return Enum.NormalId.Top
 		elseif
 			table.find(
@@ -49,12 +49,12 @@ function PlacementService._CalcSurface(data: table, surface: Enum.NormalId): Enu
 end
 
 -- Calculates base size in world space for placement
-function PlacementService._CalcBase(base: Part | BasePart, surface: Enum.NormalId)
+function PlacementService._CalcBase(base: Part | BasePart, surface: Enum.NormalId?)
 	local canvasSize = base.Size
 	surface = surface or Enum.NormalId.Top
 
 	local up = Vector3.new(0, 1, 0)
-	local back = -Vector3.FromNormalId(surface)
+	local back = -Vector3.FromNormalId(surface :: Enum.NormalId)
 
 	-- if we are using the top or bottom then we treat right as up
 	local dot = back:Dot(Vector3.new(0, 1, 0))
@@ -79,7 +79,11 @@ function PlacementService.CalcPlacementCFrame(
 	model: Model,
 	position: Vector3,
 	rotation: number
-): CFrameValue
+): CFrameValue?
+	if not model.PrimaryPart then 
+		warn(model.Name.. " does not contain a primary part.")
+		return 
+	end
 	-- use other method to get info about the surface
 	local cf, size = PlacementService._CalcBase(base)
 
@@ -108,6 +112,10 @@ end
 -- !! still need to implement way to pass in surface mouse is pointing at
 
 function PlacementService.IsColliding(model: Model): boolean
+	if not model.PrimaryPart then 
+		warn(model.Name.. " does not contain a primary part.")
+		return true
+	end
 	local touching = workspace:GetPartsInPart(model.PrimaryPart)
 	-- if intersecting with something that isn't part of the model then can't place
 	for _, part in touching do

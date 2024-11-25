@@ -3,7 +3,7 @@ local UIService = require(ReplicatedStorage.Services.UIService)
 
 local Tutorial = {}
 
-function Tutorial.CreatePanel(TextToShow : StringValue)
+function Tutorial.CreatePanel(TextToShow : StringValue, Complete : BoolValue)
     local frame = Instance.new("Frame")
     frame.Name = "Frame"
     frame.AnchorPoint = Vector2.new(0.5, 1)
@@ -12,6 +12,7 @@ function Tutorial.CreatePanel(TextToShow : StringValue)
     frame.BorderSizePixel = 0
     frame.Position = UDim2.fromScale(0.5, 0.85)
     frame.Size = UDim2.fromScale(0.5, 0.25)
+    frame.ZIndex = 2
 
     local uICorner = Instance.new("UICorner")
     uICorner.Name = "UICorner"
@@ -32,6 +33,7 @@ function Tutorial.CreatePanel(TextToShow : StringValue)
     header.TextSize = 14
     header.TextStrokeTransparency = 0
     header.TextWrapped = true
+    header.ZIndex = 3
 
     local uICorner1 = Instance.new("UICorner")
     uICorner1.Name = "UICorner"
@@ -55,9 +57,10 @@ function Tutorial.CreatePanel(TextToShow : StringValue)
     body.TextScaled = true
     body.TextStrokeTransparency = 0
     body.Parent = frame
+    body.ZIndex = 3
 
     TextToShow.Changed:Connect(function(value)
-        UIService.TypingEffect(body, value)
+        UIService.TypingEffect(body, value, nil, Complete)
     end)
 
     return frame

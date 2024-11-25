@@ -8,6 +8,7 @@ local PlayerService = require(ReplicatedStorage.Services.PlayerService)
 local PlacementService = require(ReplicatedStorage.Util.PlacementService)
 local ObjectService = require(ReplicatedStorage.Services.ObjectService)
 local InteractableService = require(ReplicatedStorage.Services.ObjectService.InteractableService)
+local UIService = require(ReplicatedStorage.Services.UIService)
 
 local ObjectData = require(ReplicatedStorage.Data.ObjectData)
 
@@ -25,7 +26,6 @@ local placeActive : boolean = false
 local currModel : Model = nil
 local basePart : Part = nil
 local objectData : Object = nil
-local buildPanel : Frame = nil
 local isBuilding : BoolValue = nil
 local isEditing : BoolValue = nil
 local moveObj : Model = nil
@@ -186,20 +186,20 @@ end)
 
 -- Handle mobile input
 local function showButtons()
-    local frame = _createMobileButtons()
-    frame.Parent = buildPanel.Keybinds
+    local mobileButtons = _createMobileButtons()
+    mobileButtons.Parent = UIService.createScope(mobileButtons)
 
     -- Bind position to object position
     RunService:BindToRenderStep("FrameMovement", 0, function()
         local screenPosition: Vector2 = Camera:WorldToScreenPoint(currModel.PrimaryPart.CFrame.Position)
-        frame.Position = UDim2.fromOffset(screenPosition.X, screenPosition.Y)
+        mobileButtons.Position = UDim2.fromOffset(screenPosition.X, screenPosition.Y)
     end)
 
-    local placeButton : ImageButton = frame:FindFirstChild("Place")
-    local rotateButton : ImageButton = frame:FindFirstChild("Rotate")
-    local moveButton : ImageButton = frame:FindFirstChild("Move")
-    local quitButton : ImageButton = frame:FindFirstChild("Quit")
-    local inventoryButton : ImageButton = frame:FindFirstChild("Inventory")
+    local placeButton : ImageButton = mobileButtons:FindFirstChild("Place")
+    local rotateButton : ImageButton = mobileButtons:FindFirstChild("Rotate")
+    local moveButton : ImageButton = mobileButtons:FindFirstChild("Move")
+    local quitButton : ImageButton = mobileButtons:FindFirstChild("Quit")
+    local inventoryButton : ImageButton = mobileButtons:FindFirstChild("Inventory")
 
     -- Press button to place
     placeButton.Activated:Connect(function()
@@ -231,7 +231,7 @@ local function showButtons()
     -- Unbind render step and destory frame
     quitButton.Activated:Connect(function()
         RunService:UnbindFromRenderStep("FrameMovement")
-        frame:Destroy()
+        mobileButtons:Destroy()
         handleInput(QUIT, Enum.UserInputState.Begin)
     end)
 end

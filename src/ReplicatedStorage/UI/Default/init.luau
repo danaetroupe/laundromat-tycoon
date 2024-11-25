@@ -2,6 +2,7 @@ local ContextActionService = game:GetService("ContextActionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UIService = require(ReplicatedStorage.Services.UIService)
 local Default = {}
+local Data = {}
 
 local BUTTONS = {
     {
@@ -70,7 +71,8 @@ function Default.createButtons(scripts)
     frame.BorderColor3 = Color3.fromRGB(0, 0, 0)
     frame.BorderSizePixel = 0
     frame.Position = UDim2.fromScale(0, 1)
-    frame.Size = UDim2.new(0, 200, 0.1, 0)
+    frame.Size = UDim2.new(0, 0, 0.1, 0)
+    frame.AutomaticSize = Enum.AutomaticSize.X
 
     local uICorner = Instance.new("UICorner")
     uICorner.Name = "UICorner"
@@ -111,7 +113,7 @@ function Default.createButtons(scripts)
             _toggle(buttonInfo.Name)
         end) 
         ContextActionService:BindAction(button.Name, function(_name, state, _obj)
-            if state == Enum.UserInputState.Begin then
+            if state == Enum.UserInputState.Begin and button.Active then
                 _toggle(buttonInfo.Name)
             end
         end, false, KEYS[i])
@@ -119,12 +121,38 @@ function Default.createButtons(scripts)
     end
 
     buttons.Parent = frame
+    Data.Buttons = buttons
     return frame
+end
+
+function Default.HighightButtons(): Frame
+    repeat 
+        task.wait()
+    until Data.Buttons
+
+    local frame : Frame = Data.Buttons.Parent
+    local highlight: Frame = Instance.new("Frame")
+    highlight.Size = UDim2.fromOffset(frame.AbsoluteSize.X, frame.AbsoluteSize.Y)
+    highlight.Position = UDim2.fromOffset(frame.AbsolutePosition.X, frame.AbsolutePosition.Y)
+    highlight.BackgroundTransparency = 1
+
+    local stroke: UIStroke = Instance.new("UIStroke")
+    stroke.Parent = highlight
+    stroke.Thickness = 50000
+    stroke.Transparency = 0.8
+
+    return highlight
+end
+
+-- Get data frame if it exists
+function Default.GetButton(buttonName : string) : ImageButton?
+    if not Data.Buttons then return end
+    return Data.Buttons:FindFirstChild(buttonName)
 end
 
 -- Toggle button activity. Name is an optional paramaeter to disable a specific button
 function Default.changeActive(frame : Frame, active : boolean, name : string?)
-    UIService.changeButtonEnabled(frame.Buttons, active, name)
+    UIService.changeButtonEnabled(frame:FindFirstChild("Buttons"), active, name)
 end
 
 function Default.createCoinDisplay(value : IntValue)

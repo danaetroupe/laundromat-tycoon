@@ -2,7 +2,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 -- Packages
 local Spr = require(ReplicatedStorage.Packages.Spr)
-local UILabs = require(ReplicatedStorage.Packages.UILabs)
 -- Data
 local Objects = require(ReplicatedStorage.Data.ObjectData.Objects)
 
@@ -34,6 +33,7 @@ local DEFAULT_COLOR = Color3.fromRGB(245, 245, 240)
 local ERROR_COLOR = Color3.fromRGB(255, 0, 0)
 
 local Store = {}
+local Data = {}
 
 -- Create build keys
 function Store.createBuildKeybinds()
@@ -208,6 +208,7 @@ function Store.createMenu(moneyVal  : number)
         button.Parent = storeFrame
     end
 
+    Data.Frame = storeFrame
     return storeFrame
 end
 
@@ -220,34 +221,48 @@ function Store.toggle(frame : Frame, visible : boolean)
 end
 
 function Store.updateIconValues(frame : Frame, moneyVal : number)
-    for _, icon : ImageButton in frame:GetChildren() do 
+    for _, icon: Instance in frame:GetChildren() do 
         if not icon:IsA("ImageButton") then continue end
         local cost = icon:GetAttribute("cost")
-        icon.Price.TextColor3 = if cost <= moneyVal then DEFAULT_COLOR else ERROR_COLOR
+        local price : TextLabel = icon:FindFirstChild("Price") :: TextLabel
+        price.TextColor3 = if cost <= moneyVal then DEFAULT_COLOR else ERROR_COLOR
     end
 end
 
-function Store.highlightIcon(store : ScrollingFrame, iconName : string) : (Frame, ImageLabel)
-    local icon : Frame = store:FindFirstChild(iconName)
+function Store.highlightIcon(iconName : string) : (Frame, ImageLabel)
+    repeat 
+        task.wait()
+    until Data.Frame 
+    local store: ScrollingFrame = Data.Frame
+    local icon : ImageButton = store:FindFirstChild(iconName) :: ImageButton
     store.ScrollingEnabled = false
 
-    local highlight = Instance.new("Frame")
+    local highlight: Frame = Instance.new("Frame")
     highlight.Size = UDim2.fromOffset(icon.AbsoluteSize.X, icon.AbsoluteSize.Y)
     highlight.Position = UDim2.fromOffset(icon.AbsolutePosition.X, icon.AbsolutePosition.Y)
     highlight.BackgroundTransparency = 1
 
-    local stroke = Instance.new("UIStroke")
+    local stroke: UIStroke = Instance.new("UIStroke")
     stroke.Parent = highlight
     stroke.Thickness = 50000
     stroke.Transparency = 0.2
 
-    local arrow = Instance.new("ImageLabel")
+    local arrow: ImageLabel = Instance.new("ImageLabel")
     arrow.Size = UDim2.fromOffset(icon.AbsoluteSize.X, icon.AbsoluteSize.Y)
     arrow.Position = UDim2.fromOffset(icon.AbsolutePosition.X, icon.AbsolutePosition.Y+icon.AbsoluteSize.Y+10)
     arrow.Image = "rbxassetid://94390079914087"
     arrow.BackgroundTransparency = 1
     -- Alt + Shift + A
     return highlight, arrow
+end
+
+-- Get store icon for events
+function Store.GetIcon(iconName : string) : ImageButton
+    repeat 
+        task.wait()
+    until Data.Frame 
+    local store: ScrollingFrame = Data.Frame
+    return store:FindFirstChild(iconName) :: ImageButton
 end
 
 return Store
