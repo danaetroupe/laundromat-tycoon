@@ -125,31 +125,6 @@ function Default.createButtons(scripts)
     return frame
 end
 
-function Default.HighightButtons(): Frame
-    repeat 
-        task.wait()
-    until Data.Buttons
-
-    local frame : Frame = Data.Buttons.Parent
-    local highlight: Frame = Instance.new("Frame")
-    highlight.Size = UDim2.fromOffset(frame.AbsoluteSize.X, frame.AbsoluteSize.Y)
-    highlight.Position = UDim2.fromOffset(frame.AbsolutePosition.X, frame.AbsolutePosition.Y)
-    highlight.BackgroundTransparency = 1
-
-    local stroke: UIStroke = Instance.new("UIStroke")
-    stroke.Parent = highlight
-    stroke.Thickness = 50000
-    stroke.Transparency = 0.8
-
-    return highlight
-end
-
--- Get data frame if it exists
-function Default.GetButton(buttonName : string) : ImageButton?
-    if not Data.Buttons then return end
-    return Data.Buttons:FindFirstChild(buttonName)
-end
-
 -- Toggle button activity. Name is an optional paramaeter to disable a specific button
 function Default.changeActive(frame : Frame, active : boolean, name : string?)
     UIService.changeButtonEnabled(frame:FindFirstChild("Buttons"), active, name)
