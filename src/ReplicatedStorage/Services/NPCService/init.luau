@@ -9,6 +9,7 @@ local MovementService = require(ReplicatedStorage.Util.MovementService)
 local ToolService = require(ReplicatedStorage.Services.ToolService)
 local PlayerService = require(ReplicatedStorage.Services.PlayerService)
 local ModelService = require(ReplicatedStorage.Util.ModelService)
+local RatingService = require(ReplicatedStorage.Services.RatingService)
 
 -- Data
 local NPCData = require(ReplicatedStorage.Data.NPCData)
@@ -71,32 +72,31 @@ end
 -- Spawn NPC and add to queue
 function NPCService.SpawnNPC(player : Player, line : string, npc : NPC?)
     local endPart : Part = _Data[player]["tycoon"][line]
-	npc = NPCService.SpawnNewCharacter(player, _Data[player]["tycoon"].Entry.CFrame, npc)
+	local npc2 = NPCService.SpawnNewCharacter(player, _Data[player]["tycoon"].Entry.CFrame, npc)
+	npc = npc2
 	if line == "pickup" then -- If npc picking up, change to pickup status
-		npc.state = "pickup"
+		npc2.state = "pickup"
 	else
 		local leave = coroutine.create(function()
-			Billboard(npc.model, 0)
 			task.wait(60)
 			-- NPC got tired of waiting and walked out
-			if npc.state == "dropoff" then
-				Billboard(npc.model, 2)
-				npc.state = "leaving"
-				NPCService.WalkOut(npc, true)
+			if npc2.state == "dropoff" then
+				npc2.state = "leaving"
+				NPCService.WalkOut(npc2, true)
 				NPCService.UpdateLine(player, "dropoff")
 			end
 		end)
 		coroutine.resume(leave)
 	end
 	-- Add to appropriate queue
-	table.insert(_Data[player][line], npc)
+	table.insert(_Data[player][line], npc2)
 
 	-- Walk to line position
-	local vector = if npc.character.PrimaryPart.CFrame.Position.X > endPart.Position.X then 1 else -1
+	local vector = if npc2.character.PrimaryPart.CFrame.Position.X > endPart.Position.X then 1 else -1
     local pos = endPart.Position + Vector3.new(vector, 0, 0) * 2 * (#_Data[player][line]-1)
-	NPCService.WalkCharacter(npc, pos, endPart.Rotation)
+	NPCService.WalkCharacter(npc2, pos, endPart.Rotation)
 	if #_Data[player][line] == 1 then
-		NPCService.GivePrompt(npc)
+		NPCService.GivePrompt(npc2)
 	end
 end
 
@@ -104,9 +104,10 @@ end
 function NPCService.SpawnNewCharacter(player : Player, point : CFrameValue, data : NPC?) : NPC
 	data = data or table.clone(NPCData)
 	if data and not data.character then
-		data.character = ModelService.GetModelFromStorage("NPC", "NPC")
-		local humanoid = data.character.Humanoid or data.character:WaitForChild("Humanoid")
+		local character = ModelService.GetModelFromStorage("NPC", "NPC")
+		local humanoid = character:FindFirstChild("Humanoid")
 		local humDesc = humanoid:GetAppliedDescription()
+		data.character = character
 
 		humDesc.Face = OutfitData.GetRandomFromCategory("face")
 		humDesc.Shirt = OutfitData.GetRandomFromCategory("shirt")
@@ -114,11 +115,12 @@ function NPCService.SpawnNewCharacter(player : Player, point : CFrameValue, data
 		humDesc.HairAccessory = OutfitData.GetRandomFromCategory("hair")
 		humanoid:ApplyDescription(humDesc)
 	end
-
+	
 	data.character.Parent = workspace
 	data.character.HumanoidRootPart.CFrame = point -- Set to point
 	data.player = player
 	data.id = if data.id then data.id else HttpService:GenerateGUID(false)
+	data.spawntime = if not data.spawntime then os.time() else data.spawntime
 	return data
 end
 
@@ -131,8 +133,6 @@ function NPCService.WalkCharacter(data : NPC, point : Vector3, rotation : Vector
 		return
 	end
 
-	MovementService.Move(character, point) -- run movement code
-
 	local connect -- connection signal
 	connect = MovementEvents.MovementComplete.Event:Connect(function(char)
 		if char == character then
@@ -141,6 +141,8 @@ function NPCService.WalkCharacter(data : NPC, point : Vector3, rotation : Vector
 			connect:Disconnect()
 		end
 	end)
+
+	MovementService.Move(character, point) -- run movement code
 end
 
 -- Destroy all NPCs in a table
@@ -205,6 +207,8 @@ function NPCService.WalkOut(npc : NPC, destroy : boolean): ()
 		task.wait(5)
 		if destroy then
 			npc.character:Destroy()
+			local time = if npc.state == "pickup" then os.time() - npc.spawn_rate else 60
+			RatingService.AddTime(npc.player, time)
 		else
 			npc.character.Parent = ReplicatedStorage
 		end

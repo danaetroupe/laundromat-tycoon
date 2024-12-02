@@ -12,7 +12,8 @@ export type NPC = {
 	rarity : "common" | "premium",
 	character : Model?,
 	player : Player?,
-    state : NPCState
+    state : NPCState,
+	spawntime: number?
 }
 
 export type Employee = NPC&{

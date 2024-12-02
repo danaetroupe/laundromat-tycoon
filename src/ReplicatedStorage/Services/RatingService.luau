@@ -33,9 +33,6 @@ local DIRT_TO_STARS = 3
 local RatingService = {}
 local _Data = {}
 
--- Initalize starting values when player is added
-Players.PlayerAdded:Connect(RatingService.InitPlayer)
-
 function RatingService.InitPlayer(player : Player)
     _Data[player] = {
         space = 3,
@@ -43,7 +40,6 @@ function RatingService.InitPlayer(player : Player)
         amenities = 0,
         cleanliness = 5,
         decorations = 0,
-        total = RatingService._RecalculateTotal(player),
         -- metrics to calculate ratings
         speed_ratings = {}, -- speed
         object_count = 0, -- space
@@ -52,11 +48,17 @@ function RatingService.InitPlayer(player : Player)
         dirt_count = 0, -- cleanliness
         decoration_count = 0 -- decorations
     }
+    _Data.total = RatingService._RecalculateTotal(player)
 end
+
+-- Initalize starting values when player is added
+Players.PlayerAdded:Connect(RatingService.InitPlayer)
+
 
 function RatingService._RecalculateTotal(player : Player)
     local data = _Data[player]
     data.total = (data.space + data.speed + data.amenities + data.cleanliness + data.decorations) / 5
+    print(player.Name.. ": ".. data.total.."/5 stars")
 end
 
 
@@ -91,12 +93,13 @@ function RatingService.AddTime(player : Player, time : number)
         table.remove(data.speed_ratings, 1)
     end
     local sum = 0
-    for num in data.speed_ratings do
+    for _, num in data.speed_ratings do
         sum += num
     end
     local average = sum / #data.speed_ratings
     data.speed = if average <= MAX_SPEED then MAX_STARS else
         math.clamp(MAX_SPEED - average / TIME_TO_STARS, 0, MAX_STARS)
+    print("speed: ".. data.speed)
     RatingService._RecalculateTotal(player)
 end
 
