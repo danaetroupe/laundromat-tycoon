@@ -51,7 +51,6 @@ end
 
 
 -- GAME FUNCTIONALITY ----------------------------------------------------------------
--- Returns new data table of object name
 function ObjectService.CreateNew(name : string, player : Player?) : Object
     if isServer then
         local data : Object = table.clone(Objects.GetObject(name))
@@ -87,9 +86,10 @@ end
 
 -- Execute server function
 if isServer then
-	ObjectEvents.ExecuteOnServer.OnServerInvoke = function(_player, func, ...)
+    ObjectEvents.ExecuteOnServer.OnServerInvoke = function(_player, func, ...)
         return ObjectService[func](...)
     end
 end
+
 
 return ObjectService

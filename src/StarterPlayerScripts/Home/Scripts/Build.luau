@@ -14,10 +14,9 @@ return function()
     if not moneyVal then return end
     
     -- Initalize UI
-    local store = Store.createMenu(moneyVal.Value)
-    local gui = UIService.createScope(store)
+    local store, categories = Store.createMenu(moneyVal.Value)
     local keybinds = Store.createBuildKeybinds()
-    keybinds.Parent = gui
+    local gui = UIService.CreateScopeWithMultipleObjects({store, categories, keybinds})
 
     -- Initalize control values
     local isBuilding = Instance.new("BoolValue")
@@ -27,7 +26,7 @@ return function()
     -- Connect icons to game functionality
     for _, icon : ImageButton in store:GetChildren() do
         if icon:IsA("ImageButton") then
-            PlaceObject.Init(icon, icon:GetAttribute("name"), isBuilding, isEditing)
+            PlaceObject.Init(icon, icon:GetAttribute("name") :: string, isBuilding, isEditing)
         end
     end
 

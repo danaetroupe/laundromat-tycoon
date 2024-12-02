@@ -1,4 +1,5 @@
 -- Service4s
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
@@ -17,16 +18,17 @@ type Object = ObjectData.Object
 
 -- Constants
 local isServer = RunService:IsServer()
+local LocalPlayer = Players.LocalPlayer
 
 local InventoryService = {}
+local _Data = {}
 
 -- Gets all objects in inventory 
-function InventoryService.GetInventory() : {Object}?
-    if not isServer then
-        return InventoryEvents.GetInventory:FireServer()
+function InventoryService.GetInventory(player : Player?) : {Object}?
+    if isServer then
+        return _Data[player]
     else
-        print("Trying to retreive inventory from client")
-        return nil
+        return InventoryEvents.ExecuteOnServer:InvokeServer(LocalPlayer)
     end
 end
 
@@ -37,6 +39,12 @@ function InventoryService.BuyItem(itemName : string, player : Player) : Object |
         return if PlayerService.MakePurchase(player, object.cost) then object else false
     else
         return InventoryEvents.AddToInventory:InvokeServer(itemName)
+    end
+end
+
+if isServer then
+    InventoryEvents.ExecuteOnServer.OnServerInvoke = function(_, func: string, ...: any): ...any
+        return InventoryService[func](...)
     end
 end
 

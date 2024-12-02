@@ -17,7 +17,7 @@ type InteractableObject = ObjectData.InteractableObject
 
 -- Varaibles
 local LocalPlayer = Players.LocalPlayer
-local Mouse = LocalPlayer:GetMouse()
+local Mouse: Mouse = if LocalPlayer then LocalPlayer:GetMouse() else nil
 local Camera = workspace.CurrentCamera
 
 local objName : string = nil
@@ -116,15 +116,15 @@ local function createNewObj()
     objectData = ObjectService.CreateNew(objName)
 end
 
-local function show(cf : CFrame)
-    cf = cf or PlacementService.CalcPlacementCFrame(basePart, currModel, Mouse.Hit.Position, rotation)
-    currModel:PivotTo(cf)
+local function show(cf : CFrame?)
+    local cframe = cf or PlacementService.CalcPlacementCFrame(basePart, currModel, Mouse.Hit.Position, rotation)
+    currModel:PivotTo(cframe)
     local color = if PlacementService.IsColliding(currModel) then Color3.new(1,0,0) else Color3.new(0,1,0)
     ObjectService.CreateHighlight(currModel, color)
 end
 
 -- End object placement
-function PlaceObject.quit()
+function PlaceObject.quit(): ()
     placeActive = false
     if currModel then 
         currModel:Destroy() 
@@ -287,7 +287,7 @@ function PlaceObject.Init(button : ImageButton, objectName : string, buildValue 
         -- Create new object
         objName = objectName
         createNewObj()
-        basePart = PlayerService.GetBasePartFromPlayer(LocalPlayer)
+        basePart = PlayerService.GetBasePartFromPlayer(LocalPlayer) :: Part
         Mouse.TargetFilter = basePart.BaseObjects
 
         currModel = objectData.model:Clone()

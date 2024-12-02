@@ -23,6 +23,7 @@ function PlacementService.Place(model: Model, cf: CFrame, basePart: Part): ()
 		model.Parent = basePart:FindFirstChild("BaseObjects")
 		model:PivotTo(cf)
 	else
+		PlacementEvents.Place:Fire(model)
 		PlacementEvents.InvokePlacement:FireServer(model, cf)
 	end
 end

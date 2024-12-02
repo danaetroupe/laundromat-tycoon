@@ -152,7 +152,7 @@ end
 
 -- Toggle button activity. Name is an optional paramaeter to disable a specific button
 function Default.changeActive(frame : Frame, active : boolean, name : string?)
-    UIService.changeButtonEnabled(frame:FindFirstChild("Buttons"), active, name)
+    UIService.changeButtonEnabled(frame:FindFirstChild("Buttons") :: Folder, active, name)
 end
 
 function Default.createCoinDisplay(value : IntValue)

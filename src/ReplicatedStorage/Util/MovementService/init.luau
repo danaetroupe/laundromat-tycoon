@@ -8,22 +8,23 @@ walkAnim.AnimationId = "rbxassetid://507777826"
 
 local MovementService = {}
 
-function MovementService.Move(character : Model, destination : Vector3, parameters : table)
-    local humanoid = character.Humanoid or character:WaitForChild("Humanoid")
+function MovementService.Move(character : Model, destination : Vector3, parameters : {}?)
+    local humanoid = character:FindFirstChild("Humanoid")
 	local animator = humanoid.Animator or humanoid:WaitForChild("Animator")
+	local humRootPart : Part = character:FindFirstChild("HumanoidRootPart") :: Part
 
 	-- Load animation
 	local track : AnimationTrack = animator:LoadAnimation(walkAnim)
  
 	-- Set pathfinding variables
-	parameters = parameters or {AgentCanJump=false}
+	parameters = parameters or {} -- {AgentCanJump = false}
     local path : Path = PathfindingService:CreatePath(parameters)
     local blockedConnection
     local reachedConnection
     local nextWaypointIndex
 
     local success, errorMessage = pcall(function()
-		path:ComputeAsync(character.PrimaryPart.Position, destination)
+		path:ComputeAsync(humRootPart.Position, destination)
 	end)
 
 	if success and path.Status == Enum.PathStatus.Success then
@@ -63,7 +64,6 @@ function MovementService.Move(character : Model, destination : Vector3, paramete
 		track:Play()
 	else
 		warn("Path not computed!", errorMessage)
-		MovementService.Move(character, destination)
 	end
 
 	return reachedConnection

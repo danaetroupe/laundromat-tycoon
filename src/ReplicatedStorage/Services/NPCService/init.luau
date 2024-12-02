@@ -15,7 +15,7 @@ local NPCData = require(ReplicatedStorage.Data.NPCData)
 local OutfitData = require(ReplicatedStorage.Data.OutfitData)
 
 -- UI
-local Billboard = require(ReplicatedStorage.UI.Billboard)
+--local Billboard = require(ReplicatedStorage.UI.Billboard)
 
 -- Events
 local MovementEvents = ReplicatedStorage.Events.MovementEvents
@@ -72,11 +72,11 @@ function NPCService.SpawnNPC(player : Player, line : string, npc : NPC?)
 		npc.state = "pickup"
 	else
 		local leave = coroutine.create(function()
-			Billboard(npc.model, 0)
+			--Billboard(npc.model, 0)
 			task.wait(60)
 			-- NPC got tired of waiting and walked out
 			if npc.state == "dropoff" then
-				Billboard(npc.model, 2)
+				--Billboard(npc.model, 2)
 				npc.state = "leaving"
 				NPCService.WalkOut(npc, true)
 				NPCService.UpdateLine(player, "dropoff")
@@ -101,7 +101,8 @@ function NPCService.SpawnNewCharacter(player : Player, point : CFrameValue, data
 	data = data or table.clone(NPCData)
 	if data and not data.character then
 		data.character = ModelService.GetModelFromStorage("NPC", "NPC")
-		local humanoid = data.character.Humanoid or data.character:WaitForChild("Humanoid")
+		local character = data.character
+		local humanoid = character.Humanoid or character:WaitForChild("Humanoid")
 		local humDesc = humanoid:GetAppliedDescription()
 
 		humDesc.Face = OutfitData.GetRandomFromCategory("face")
@@ -110,11 +111,12 @@ function NPCService.SpawnNewCharacter(player : Player, point : CFrameValue, data
 		humDesc.HairAccessory = OutfitData.GetRandomFromCategory("hair")
 		humanoid:ApplyDescription(humDesc)
 	end
-
+	
 	data.character.Parent = workspace
 	data.character.HumanoidRootPart.CFrame = point -- Set to point
 	data.player = player
 	data.id = if data.id then data.id else HttpService:GenerateGUID(false)
+	NPCEvents.NPCSpawned:FireClient(player, data)  
 	return data
 end
 
@@ -152,7 +154,7 @@ function NPCService.AddToPurgatory(player : Player, npc : NPC): ()
 	if isServer then
 		table.insert(_Data[player]["purgatory"], npc)
 	else
-		NPCEvents.ExecuteOnServer:FireServer("AddToPurgatory", player, npc)
+		NPCEvents.ExecuteOnServer:InvokeServer("AddToPurgatory", player, npc)
 	end
 end
 
@@ -170,7 +172,7 @@ function NPCService.GivePrompt(npc : NPC): ()
 			local keyState = if key then ToolService.GetState(key) else nil
 			-- Check if npc is dropping off and player does not have key
 			if state == "dropoff" and not PlayerService.GetKey(player) then
-				local tool = ToolService.GiveNewTool(player, "laundrybasket", npc.id)
+				local tool = ToolService.GiveNewTool(player, "laundrybasket", npc.id :: string)
 				local success = PlayerService.AssignKey(tool)
 				if success then
 					npc.state = "pickup"
@@ -197,24 +199,28 @@ end
 -- Walk NPC out
 function NPCService.WalkOut(npc : NPC, destroy : boolean): ()
 	if isServer then
-		local part : Part = PlayerService.GetStartPoint(npc.player) :: Part
+		local part : Part = PlayerService.GetStartPoint(npc.player :: Player) :: Part
 		NPCService.WalkCharacter(npc, part.Position, part.Rotation)
 		task.wait(5)
-		if destroy then
-			npc.character:Destroy()
-		else
-			npc.character.Parent = ReplicatedStorage
+		if npc.character then
+			if destroy then
+				npc.character:Destroy()
+			else
+				npc.character.Parent = ReplicatedStorage
+			end
+		else 
+			warn("Trying to walk out character but character does not exist.")
 		end
 	else
-		NPCEvents.ExecuteOnServer:FireServer("WalkOut", npc, destroy)
+		NPCEvents.ExecuteOnServer:InvokeServer("WalkOut", npc, destroy)
 	end
 end
 
 -- Update queue
 function NPCService.UpdateLine(player : Player, line : string) -- moves up line if event happens
 	if isServer then
-		local npc : NPC = table.remove(_Data[player][line], 1)
-		npc.state = "dontdespawnpls"
+		local npc : NPC = table.remove(_Data[player][line], 1) :: NPC
+		npc.state = "dontdespawnpls" -- todo: figure out what i can change this to :|
 		if #_Data[player][line] >= 1 then -- check if queue is not empty
 			NPCService.GivePrompt(_Data[player][line][1])
 		end
@@ -223,15 +229,15 @@ function NPCService.UpdateLine(player : Player, line : string) -- moves up line 
 			NPCService.WalkCharacter(attendant, pos, _Data[player]["tycoon"][line].Rotation)
 		end
 	else
-		NPCEvents.ExecuteOnServer:FireServer("UpdateLine", player, line)
+		NPCEvents.ExecuteOnServer:InvokeServer("UpdateLine", player, line)
 	end
 end
 
 -- Handles server-client communication
 if isServer then
-	NPCEvents.ExecuteOnServer.OnServerEvent:Connect(function(_player, func, ...)
-		NPCService[func](...)
-	end)
+	NPCEvents.ExecuteOnServer.OnServerInvoke = function(_player, func, ...)
+		return NPCService[func](...)
+	end
 else
 	-- Executes proximity prompt creations via client
 	NPCEvents.ExecuteOnClient.OnClientEvent:Connect(function(func : string, ...)
@@ -255,6 +261,31 @@ function NPCService.SpawnById(player : Player, id : string)
 	end
 
 	NPCService.SpawnNPC(player, "pickup", npc)
+end
+
+function NPCService.GetFirstNPC(player : Player)
+	if isServer then
+		return _Data[player]["dropoff"][1]
+	else
+		return NPCEvents.ExecuteOnServer:InvokeServer("GetFirstNPC", Players.LocalPlayer)
+	end
+end
+
+-- Create beam attatchment pointing toward NPC
+function NPCService.CreateBeam(player : Player) : Beam?
+	local Tutorial = require(ReplicatedStorage.UI.Tutorial)
+	local first = NPCService.GetFirstNPC(player)
+	local npc : NPC = if first then first else NPCEvents.NPCSpawned.OnClientEvent:Wait()
+	local char : Model = npc.character :: Model
+	local root = char:FindFirstChild("HumanoidRootPart") :: Part
+	local attatchment = root:FindFirstChild("RootAttachment") :: Attachment
+	return Tutorial.CreateBeam(player, attatchment)
+end
+
+function NPCService.GetPrompt(player : Player) : ProximityPrompt
+	local npc : NPC = NPCService.GetFirstNPC(player) or NPCEvents.NPCSpawned.OnClientEvent:Wait()
+	local character = npc.character :: Model
+	return character:WaitForChild("ProximityPrompt")
 end
 
 return NPCService

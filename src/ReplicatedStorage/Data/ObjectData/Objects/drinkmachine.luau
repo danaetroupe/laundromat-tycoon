@@ -2,7 +2,7 @@ local ObjectData = require(script.Parent.Parent)
 
 type Object = ObjectData.Object
 
-local washer : Object = {
+local drinkmachine : Object = {
     name = "Drink Machine",
     currentLevel = 1,
     maxLevel = 3,
@@ -13,4 +13,4 @@ local washer : Object = {
     model = nil,
 }
 
-return washer
+return drinkmachine

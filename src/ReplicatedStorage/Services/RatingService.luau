@@ -8,7 +8,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ObjectData = require(ReplicatedStorage.Data.ObjectData)
 
 -- Events
-local PlayerEvents = ReplicatedStorage.Events.PlayerEvents
 
 -- Types
 type ObjectCategory = ObjectData.ObjectCategory
@@ -33,8 +32,10 @@ local DIRT_TO_STARS = 3
 local RatingService = {}
 local _Data = {}
 
--- Initalize starting values when player is added
-Players.PlayerAdded:Connect(RatingService.InitPlayer)
+function RatingService._RecalculateTotal(player : Player)
+    local data = _Data[player]
+    data.total = (data.space + data.speed + data.amenities + data.cleanliness + data.decorations) / 5
+end
 
 function RatingService.InitPlayer(player : Player)
     _Data[player] = {
@@ -43,7 +44,7 @@ function RatingService.InitPlayer(player : Player)
         amenities = 0,
         cleanliness = 5,
         decorations = 0,
-        total = RatingService._RecalculateTotal(player),
+    
         -- metrics to calculate ratings
         speed_ratings = {}, -- speed
         object_count = 0, -- space
@@ -52,13 +53,12 @@ function RatingService.InitPlayer(player : Player)
         dirt_count = 0, -- cleanliness
         decoration_count = 0 -- decorations
     }
+
+    _Data[player].total = RatingService._RecalculateTotal(player)
 end
 
-function RatingService._RecalculateTotal(player : Player)
-    local data = _Data[player]
-    data.total = (data.space + data.speed + data.amenities + data.cleanliness + data.decorations) / 5
-end
-
+-- Initalize starting values when player is added
+Players.PlayerAdded:Connect(RatingService.InitPlayer)
 
 function RatingService.AddObject(player : Player, category : ObjectCategory)
     local data = _Data[player]

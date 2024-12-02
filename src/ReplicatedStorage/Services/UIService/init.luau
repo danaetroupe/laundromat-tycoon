@@ -18,7 +18,25 @@ function UIService.createScope(object) : ScreenGui
     return gui
 end
 
-function UIService.changeButtonEnabled(folder, active : boolean, name : string?)
+function UIService.CreateScopeWithMultipleObjects(objects) : ScreenGui
+    local gui = Instance.new("ScreenGui")
+    gui.Parent = LocalPlayer.PlayerGui
+    for _, object in objects do
+        object.Parent = gui
+    end
+
+    -- If no more children, clean up gui :)
+    gui.ChildRemoved:Connect(function()
+        if #gui:GetChildren() == 0 then
+            gui:Destroy()
+        end
+    end)
+
+    return gui
+end
+
+
+function UIService.changeButtonEnabled(folder: Folder, active : boolean, name : string?)
     if name then
         local button = folder:FindFirstChild(name)
         if button:IsA("ImageButton") then
@@ -26,7 +44,7 @@ function UIService.changeButtonEnabled(folder, active : boolean, name : string?)
             button.Active = active
         end
     else
-        for _, button :ImageButton in folder:GetChildren() do
+        for _, button in folder:GetChildren() do
             if button:IsA("ImageButton") then
                 button.ImageColor3 = if active then Color3.new(1,1,1) else Color3.new(0.345098, 0.345098, 0.345098)
                 button.Active = active

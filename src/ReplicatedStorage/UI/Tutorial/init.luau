@@ -66,4 +66,26 @@ function Tutorial.CreatePanel(TextToShow : StringValue, Complete : BoolValue)
     return frame
 end
 
+function Tutorial.CreateBeam(player : Player, attatchment : Attachment)
+    local beam = Instance.new("Beam")
+    beam.Name = "Beam"
+    beam.Segments = 1
+    beam.Texture = "rbxassetid://94390079914087"
+    beam.TextureMode = Enum.TextureMode.Static
+    beam.TextureSpeed = 0
+    beam.Parent = workspace
+    beam.Transparency = NumberSequence.new({
+    NumberSequenceKeypoint.new(0, 0.2),
+    NumberSequenceKeypoint.new(1, 0.2),
+    })
+    
+    local character = player.Character or player.CharacterAdded:Wait()
+    local humPart = character:FindFirstChild("HumanoidRootPart")
+    local rootAttatchment = humPart:FindFirstChild("RootAttachment")
+    beam.Attachment1 = rootAttatchment
+    beam.Attachment0 = attatchment
+
+    return beam
+end
+
 return Tutorial

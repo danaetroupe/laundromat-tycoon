@@ -4,6 +4,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Spr = require(ReplicatedStorage.Packages.Spr)
 -- Data
 local Objects = require(ReplicatedStorage.Data.ObjectData.Objects)
+local Vector = require(ReplicatedStorage.Packages.Cmdr.BuiltInTypes.Vector)
 
 -- Locals
 local KEY_IMAGE = "rbxassetid://71593851686379"
@@ -157,7 +158,7 @@ local function _createIcon(objectName : string, money : number)
 
     local uICorner = Instance.new("UICorner")
     uICorner.Name = "UICorner"
-    uICorner.CornerRadius = UDim.new(0, 20)
+    uICorner.CornerRadius = UDim.new(0.2, 0)
     uICorner.Parent = icon
 
     local itemName = Instance.new("TextLabel")
@@ -178,7 +179,7 @@ local function _createIcon(objectName : string, money : number)
     return icon
 end
 
-local function _makeFrame()
+local function _makeFrame(): ScrollingFrame
     local store = Instance.new("ScrollingFrame")
     store.Name = "Store"
     store.Active = true
@@ -189,7 +190,7 @@ local function _makeFrame()
     store.ElasticBehavior = Enum.ElasticBehavior.Always
     store.ScrollBarImageColor3 = Color3.fromRGB(0, 0, 0)
     store.ScrollBarImageTransparency = 1
-    store.Size = UDim2.new(1, -20, 0.4, 0)
+    store.Size = UDim2.new(0.8, -5, 0.4, 0)
 
     local uIListLayout = Instance.new("UIListLayout")
     uIListLayout.Name = "UIListLayout"
@@ -197,11 +198,59 @@ local function _makeFrame()
     uIListLayout.Padding = UDim.new(0, 5)
     uIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
     uIListLayout.Parent = store
+    uIListLayout.Wraps = true
     return store
+end
+
+local function _makeCategoryFrame() : ScrollingFrame
+    local categories = Instance.new("ScrollingFrame")
+    categories.Name = "Categories"
+    categories.Active = true
+    categories.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    categories.BackgroundTransparency = 1
+    categories.BorderColor3 = Color3.fromRGB(0, 0, 0)
+    categories.BorderSizePixel = 0
+    categories.ElasticBehavior = Enum.ElasticBehavior.Always
+    categories.ScrollBarImageColor3 = Color3.fromRGB(0, 0, 0)
+    categories.ScrollBarImageTransparency = 1
+    categories.Size = UDim2.new(0.2, -5, 0.4, 0)
+    categories.AnchorPoint = Vector2.new(1, 0)
+    categories.Position = UDim2.fromScale(1,0)
+    categories.ScrollingEnabled = false
+
+    local uIListLayout = Instance.new("UIListLayout")
+    uIListLayout.Name = "UIListLayout"
+    uIListLayout.FillDirection = Enum.FillDirection.Vertical
+    uIListLayout.Padding = UDim.new(0, 5)
+    uIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    uIListLayout.Parent = categories
+
+    local names = {"Build", "Inventory"}
+    for _, name in names do
+        local button = Instance.new("TextButton")
+        button.Text = name
+        button.Name = name
+        button.Parent = categories
+        button.Size = UDim2.new(1, -20, 0.025, 0)
+        button.FontFace = Font.new("rbxasset://fonts/families/FredokaOne.json")
+        button.TextColor3 = DEFAULT_COLOR
+        button.TextScaled = true
+        button.TextSize = 14
+        button.TextStrokeColor3 = Color3.fromRGB(12, 23, 19)
+        button.TextStrokeTransparency = 0
+        button.BackgroundColor3 = Color3.fromHex("A7D8F0")
+
+        local uICorner = Instance.new("UICorner")
+        uICorner.Name = "UICorner"
+        uICorner.CornerRadius = UDim.new(0.5, 0)
+        uICorner.Parent = button
+    end
+    return categories
 end
 
 function Store.createMenu(moneyVal  : number)
     local storeFrame = _makeFrame()
+    local categoriesFrame = _makeCategoryFrame()
 
     for _, objectName in Objects.GetObjectNames() do
         local button = _createIcon(objectName, moneyVal)
@@ -209,13 +258,13 @@ function Store.createMenu(moneyVal  : number)
     end
 
     Data.Frame = storeFrame
-    return storeFrame
+    return storeFrame, categoriesFrame
 end
 
 -- Close build panel
 function Store.toggle(frame : Frame, visible : boolean)
     local targetValue = if visible then 0 else -1
-    Spr.target(frame, 1, 1, {
+    Spr.target(frame, 1, 1.5, {
         Position = UDim2.fromScale(0, targetValue)
     })
 end
@@ -232,7 +281,7 @@ end
 function Store.highlightIcon(iconName : string) : (Frame, ImageLabel)
     repeat 
         task.wait()
-    until Data.Frame 
+    until Data.Frame and Data.Frame.Position.Y == UDim.new(0,0)
     local store: ScrollingFrame = Data.Frame
     local icon : ImageButton = store:FindFirstChild(iconName) :: ImageButton
     store.ScrollingEnabled = false

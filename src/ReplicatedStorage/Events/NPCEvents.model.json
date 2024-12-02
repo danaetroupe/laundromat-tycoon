@@ -19,6 +19,10 @@
         },
         {
             "Name": "ExecuteOnServer",
+            "ClassName": "RemoteFunction"
+        },
+        {
+            "Name": "NPCSpawned",
             "ClassName": "RemoteEvent"
         }
         

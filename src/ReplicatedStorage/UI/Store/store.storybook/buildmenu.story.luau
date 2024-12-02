@@ -9,8 +9,9 @@ return {
         PlayerMoney = UILabs.Number(250)
     },
     render = function(props : UILabs.GenericProps)
-        local buildStore = Store.createMenu(props.controls.PlayerMoney)
+        local buildStore, categoriesFrame = Store.createMenu(props.controls.PlayerMoney)
         buildStore.Parent = props.target
+        categoriesFrame.Parent = props.target
 
         local keybinds = Store.createBuildKeybinds()
         keybinds.Parent = props.target

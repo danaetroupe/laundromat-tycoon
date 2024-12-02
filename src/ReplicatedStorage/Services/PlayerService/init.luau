@@ -125,15 +125,15 @@ function PlayerService.ToggleActive(player : Player) : boolean
 end
 
 -- Assign key (typically a tool)
-function PlayerService.AssignKey(key : ToolInfo, serverData : PlayerData?) : boolean
+function PlayerService.AssignKey(key : ToolInfo, player : Player?) : boolean
     if isServer then
-        if not serverData or serverData.key then return false end
-        serverData.key = key
+        local data = PlayerInfo[player]
+        data.key = key
         return true
     else
         ContextActionService:BindAction(SETDOWN, PlayerService._handleInput, true, Enum.KeyCode.P)
         MobileService.CreateMobileButton(SETDOWN, placeImg)
-        return PlayerEvents.ExecuteOnServer:InvokeServer("AssignKey", key)
+        return PlayerEvents.ExecuteOnServer:InvokeServer("AssignKey", key, LocalPlayer)
     end
 end
 

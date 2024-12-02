@@ -1,14 +1,19 @@
-local AnalyticsService = game:GetService("AnalyticsService")
+--local AnalyticsService = game:GetService("AnalyticsService")
 local ContextActionService = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local UIService = require(ReplicatedStorage.Services.UIService)
+local NPCService = require(ReplicatedStorage.Services.NPCService)
+local PlayerService = require(ReplicatedStorage.Services.PlayerService)
+
 local Tutorial = require(ReplicatedStorage.UI.Tutorial)
 local Default = require(ReplicatedStorage.UI.Default)
 local Store = require(ReplicatedStorage.UI.Store)
+local PlaceObject = require(ReplicatedStorage.UI.Store.PlaceObject)
 
 local TutorialEvents = ReplicatedStorage.Events.TutorialEvents
+local PlacementEvents = ReplicatedStorage.Events.PlacementEvents
 
 local LocalPlayer = Players.LocalPlayer
 
@@ -32,7 +37,7 @@ local StageInfo =  {
             buttons = TutorialEvents.ShowButtons:Invoke()
         end,
         Destroy = function()
-            local highlight, arrow = Default.HighightButtons()
+            local highlight: Frame = Default.HighightButtons()
             highlight.Parent = Target
             return {highlight}
         end
@@ -55,7 +60,7 @@ local StageInfo =  {
     { -- 4 ---------------------------------------------------------------------
         Text = "Buy a washing machine",
         Execute = function()
-            Default.changeActive(buttons, false, "Build")
+            -- Default.changeActive(buttons, false, "Build") I forgot why I disabled the button
         end,
         Destroy = function()
             local highlight, arrow = Store.highlightIcon("washer")
@@ -72,7 +77,84 @@ local StageInfo =  {
                 return warn("Cannot find washer button")
             end
         end
-    }
+    },
+    { -- 4 ---------------------------------------------------------------------
+        Text = "Place your washing machine.",
+        CanClickForward = false,
+        Event = function() : RBXScriptSignal
+            return PlacementEvents.Place.Event
+        end
+    },
+    { -- 5 ---------------------------------------------------------------------
+        Text = "Buy a dryer.",
+        Execute = function()
+            PlaceObject.quit()
+        end,
+        Destroy = function()
+            local highlight, arrow = Store.highlightIcon("dryer")
+            highlight.Parent = Target
+            arrow.Parent = Target
+            return {highlight, arrow}
+        end,
+        CanClickForward = false,
+        Event = function()
+            local dryer = Store.GetIcon("dryer")
+            if dryer then 
+                return dryer.Activated
+            else
+                return warn("Cannot find dryer button")
+            end
+        end
+    },
+    { -- 6 ---------------------------------------------------------------------
+        Text = "Place your dryer.",
+        CanClickForward = false,
+        Event = function() : RBXScriptSignal
+            return PlacementEvents.Place.Event
+        end
+    },
+    { -- 7 ---------------------------------------------------------------------
+        Text = "Buy a folding table.",
+        Execute = function()
+            PlaceObject.quit()
+        end,
+        Destroy = function()
+            local highlight, arrow = Store.highlightIcon("table")
+            highlight.Parent = Target
+            arrow.Parent = Target
+            return {highlight, arrow}
+        end,
+        CanClickForward = false,
+        Event = function()
+            local table = Store.GetIcon("table")
+            if table then 
+                return table.Activated
+            else
+                return warn("Cannot find table button")
+            end
+        end
+    },
+    { -- 6 ---------------------------------------------------------------------
+        Text = "Place your table.",
+        CanClickForward = false,
+        Event = function() : RBXScriptSignal
+            return PlacementEvents.Place.Event
+        end
+    },
+    { -- 7 ---------------------------------------------------------------------
+        Text = "Get the laundry from the customer.",
+        CanClickForward = false,
+        Execute = function()
+            PlayerService.ToggleActive(LocalPlayer)
+        end,
+        Destroy = function()
+            local beam = NPCService.CreateBeam(LocalPlayer)
+            return {beam}
+        end,
+        Event = function() : RBXScriptSignal
+            return NPCService.GetPrompt(LocalPlayer).Triggered
+        end
+    },
 }
 
 function TutorialService.Start()
@@ -108,6 +190,7 @@ end
 
 -- Advance to next stage in tutorial
 function TutorialService.NextStage(_name, state, _input)
+    -- runs on client
     if state ~= Enum.UserInputState.Begin then return end
     if TextComplete.Value == false then -- Finish showing text before advancing
         TextComplete.Value = true
@@ -145,9 +228,11 @@ function TutorialService.NextStage(_name, state, _input)
     end
     if info.Event then -- Check for event 
         local event : RBXScriptSignal = info.Event()
-        event:Connect(function()
+        local connection
+        connection = event:Connect(function()
             TextComplete.Value = true
             TutorialService.NextStage(nil, Enum.UserInputState.Begin)
+            connection:Disconnect()
         end)
     end
 end
