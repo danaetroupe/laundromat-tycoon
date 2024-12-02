@@ -12,6 +12,10 @@
         {
             "Name": "AddToInventory",
             "ClassName": "RemoteFunction"
+        },
+        {
+            "Name": "ExecuteOnServer", 
+            "ClassName": "RemoteFunction"
         }
     ]
 }

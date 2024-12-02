@@ -8,6 +8,7 @@ local PlayerService = require(ReplicatedStorage.Services.PlayerService)
 local PlacementService = require(ReplicatedStorage.Util.PlacementService)
 local ObjectService = require(ReplicatedStorage.Services.ObjectService)
 local InteractableService = require(ReplicatedStorage.Services.ObjectService.InteractableService)
+local UIService = require(ReplicatedStorage.Services.UIService)
 
 local ObjectData = require(ReplicatedStorage.Data.ObjectData)
 
@@ -16,7 +17,7 @@ type InteractableObject = ObjectData.InteractableObject
 
 -- Varaibles
 local LocalPlayer = Players.LocalPlayer
-local Mouse = LocalPlayer:GetMouse()
+local Mouse: Mouse = if LocalPlayer then LocalPlayer:GetMouse() else nil
 local Camera = workspace.CurrentCamera
 
 local objName : string = nil
@@ -25,7 +26,6 @@ local placeActive : boolean = false
 local currModel : Model = nil
 local basePart : Part = nil
 local objectData : Object = nil
-local buildPanel : Frame = nil
 local isBuilding : BoolValue = nil
 local isEditing : BoolValue = nil
 local moveObj : Model = nil
@@ -116,15 +116,15 @@ local function createNewObj()
     objectData = ObjectService.CreateNew(objName)
 end
 
-local function show(cf : CFrame)
-    cf = cf or PlacementService.CalcPlacementCFrame(basePart, currModel, Mouse.Hit.Position, rotation)
-    currModel:PivotTo(cf)
+local function show(cf : CFrame?)
+    local cframe = cf or PlacementService.CalcPlacementCFrame(basePart, currModel, Mouse.Hit.Position, rotation)
+    currModel:PivotTo(cframe)
     local color = if PlacementService.IsColliding(currModel) then Color3.new(1,0,0) else Color3.new(0,1,0)
     ObjectService.CreateHighlight(currModel, color)
 end
 
 -- End object placement
-function PlaceObject.quit()
+function PlaceObject.quit(): ()
     placeActive = false
     if currModel then 
         currModel:Destroy() 
@@ -153,7 +153,7 @@ local function handleInput(name, userInputState, _input)
     elseif name == PLACE then
         -- Check object can be placed
         if PlacementService.IsColliding(currModel) then return end
-        if not isEditing.Value and not PlayerService.MakePurchase(objectData.cost) then return end
+        if not isEditing.Value and not PlayerService.MakePurchase(LocalPlayer, objectData.cost) then return end
         local model = if isEditing.Value then moveObj else ObjectService.GetModel(objectData)
         PlacementService.Place(model, currModel.PrimaryPart.CFrame, basePart)
         PlaceObject.InitEditObject(model)
@@ -186,20 +186,20 @@ end)
 
 -- Handle mobile input
 local function showButtons()
-    local frame = _createMobileButtons()
-    frame.Parent = buildPanel.Keybinds
+    local mobileButtons = _createMobileButtons()
+    mobileButtons.Parent = UIService.createScope(mobileButtons)
 
     -- Bind position to object position
     RunService:BindToRenderStep("FrameMovement", 0, function()
         local screenPosition: Vector2 = Camera:WorldToScreenPoint(currModel.PrimaryPart.CFrame.Position)
-        frame.Position = UDim2.fromOffset(screenPosition.X, screenPosition.Y)
+        mobileButtons.Position = UDim2.fromOffset(screenPosition.X, screenPosition.Y)
     end)
 
-    local placeButton : ImageButton = frame:FindFirstChild("Place")
-    local rotateButton : ImageButton = frame:FindFirstChild("Rotate")
-    local moveButton : ImageButton = frame:FindFirstChild("Move")
-    local quitButton : ImageButton = frame:FindFirstChild("Quit")
-    local inventoryButton : ImageButton = frame:FindFirstChild("Inventory")
+    local placeButton : ImageButton = mobileButtons:FindFirstChild("Place")
+    local rotateButton : ImageButton = mobileButtons:FindFirstChild("Rotate")
+    local moveButton : ImageButton = mobileButtons:FindFirstChild("Move")
+    local quitButton : ImageButton = mobileButtons:FindFirstChild("Quit")
+    local inventoryButton : ImageButton = mobileButtons:FindFirstChild("Inventory")
 
     -- Press button to place
     placeButton.Activated:Connect(function()
@@ -231,7 +231,7 @@ local function showButtons()
     -- Unbind render step and destory frame
     quitButton.Activated:Connect(function()
         RunService:UnbindFromRenderStep("FrameMovement")
-        frame:Destroy()
+        mobileButtons:Destroy()
         handleInput(QUIT, Enum.UserInputState.Begin)
     end)
 end
@@ -287,7 +287,7 @@ function PlaceObject.Init(button : ImageButton, objectName : string, buildValue 
         -- Create new object
         objName = objectName
         createNewObj()
-        basePart = PlayerService.GetBasePartFromPlayer(LocalPlayer)
+        basePart = PlayerService.GetBasePartFromPlayer(LocalPlayer) :: Part
         Mouse.TargetFilter = basePart.BaseObjects
 
         currModel = objectData.model:Clone()

@@ -4,7 +4,10 @@
         {
             "Name": "InvokePlacement",
             "ClassName": "RemoteEvent"
+        },
+        {
+            "Name": "Place",
+            "ClassName": "BindableEvent"
         }
-        
     ]
 }

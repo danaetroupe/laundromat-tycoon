@@ -9,11 +9,16 @@ return {
         PlayerMoney = UILabs.Number(250)
     },
     render = function(props : UILabs.GenericProps)
-        local buildStore = Store.createMenu(props.controls.PlayerMoney)
+        local buildStore, categoriesFrame = Store.createMenu(props.controls.PlayerMoney)
         buildStore.Parent = props.target
+        categoriesFrame.Parent = props.target
 
         local keybinds = Store.createBuildKeybinds()
         keybinds.Parent = props.target
+
+        local highlight, arrow = Store.highlightIcon(buildStore, "dryer")
+        highlight.Parent = props.target
+        arrow.Parent = props.target
 
         props.subscribe(function(_values, info)
             UILabs.ListenControl(info.PlayerMoney, function(newValue)

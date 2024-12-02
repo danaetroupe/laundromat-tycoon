@@ -9,8 +9,10 @@ local ToolService = require(ReplicatedStorage.Services.ToolService)
 local PlayerDataModule = require(ReplicatedStorage.Data.PlayerData)
 local ToolData = require(ReplicatedStorage.Data.ToolData)
 local MobileService = require(ReplicatedStorage.Services.MobileService)
+local PlacementService = require(ReplicatedStorage.Util.PlacementService)
 
 local PlayerEvents = ReplicatedStorage.Events.PlayerEvents
+local PlacementEvents = ReplicatedStorage.Events.PlacementEvents
 
 type PlayerData = PlayerDataModule.PlayerData
 type ToolInfo = ToolData.ToolInfo
@@ -22,11 +24,12 @@ local placeImg = "rbxassetid://90664024735834"
 local isServer: boolean = RunService:IsServer()
 local LocalPlayer: Player = Players.LocalPlayer
 local PlayerService = {}
+local PlayerInfo = {}
 
 -- GETTERS ------------------------------------------------------------------------------------
 -- Get table of player data
 function PlayerService.GetPlayerData(player : Player) : PlayerData 
-    return if isServer then PlayerEvents.GetServerPlayerData:Invoke(player) else PlayerEvents.GetPlayerData:InvokeServer(player)
+    return if isServer then PlayerInfo[player] else PlayerEvents.ExecuteOnServer:InvokeServer("GetPlayerData", player)
 end
 
 -- Returns base part
@@ -78,7 +81,7 @@ end
 
 -- GAME FUNCTIONALITY -------------------------------------------------------------------------
 -- Assigns tycoon to player
-function PlayerService.AssignToPlayer(player : Player, tycoon : Model) : PlayerData 
+function PlayerService.AssignToPlayer(player : Player, tycoon : Model) : ()
     local data : PlayerData = table.clone(PlayerDataModule)
     data.player = player
     data.tycoon = tycoon
@@ -87,14 +90,14 @@ function PlayerService.AssignToPlayer(player : Player, tycoon : Model) : PlayerD
     local folder = Instance.new("Folder") -- create folder to store temp assets
     folder.Name = player.Name
     folder.Parent = ReplicatedStorage.Temp
+    local baseObjects = PlacementService.Init(tycoon:FindFirstChild("Base") :: Part)
     Players.PlayerRemoving:Connect(function(plr: Player) -- set to destroy folder when leave
         if player == plr then
             folder:Destroy()
+            baseObjects:Destroy()
         end
     end)
     data.temp = folder
-
-    PlayerEvents.InitTycoon:FireClient(player, data)
 
     -- Initalize leaderboard
     local leaderstats = Instance.new("Folder")
@@ -105,19 +108,16 @@ function PlayerService.AssignToPlayer(player : Player, tycoon : Model) : PlayerD
     money.Name = "Money"
     money.Value = data.money
     money.Parent = leaderstats
-    return data
+    PlayerInfo[player] = data
 end
 
--- Inserts given model into baseobjects
-function PlayerService.StoreObject(data : PlayerData, model : Model)
-    table.insert(data.baseObjects, model)
-end
 
 -- Toggles active value of playerdata
-function PlayerService.ToggleActive(data : PlayerData) : boolean
+function PlayerService.ToggleActive(player : Player) : boolean
     if not isServer then
-        return PlayerEvents.ChangeActive:InvokeServer()
+        return PlayerEvents.ExecuteOnServer:InvokeServer("ToggleActive", player)
     else
+        local data = PlayerInfo[player]
         data["active"] = not data["active"]
         PlayerEvents.ActiveToggled:Fire(data["player"], data["active"])
         return data["active"]
@@ -125,27 +125,25 @@ function PlayerService.ToggleActive(data : PlayerData) : boolean
 end
 
 -- Assign key (typically a tool)
-function PlayerService.AssignKey(key : ToolInfo, serverData : PlayerData?) : boolean
+function PlayerService.AssignKey(key : ToolInfo, player : Player?) : boolean
     if isServer then
-        if not serverData or serverData.key then return false end
-        serverData.key = key
+        local data = PlayerInfo[player]
+        data.key = key
         return true
     else
         ContextActionService:BindAction(SETDOWN, PlayerService._handleInput, true, Enum.KeyCode.P)
         MobileService.CreateMobileButton(SETDOWN, placeImg)
-        return PlayerEvents.ExecuteOnServer:InvokeServer("AssignKey", key)
+        return PlayerEvents.ExecuteOnServer:InvokeServer("AssignKey", key, LocalPlayer)
     end
 end
 
 -- Accepts player data as parameter on server or player as paramater on client
-function PlayerService.ClearKey(data : PlayerData?) : ()
+function PlayerService.ClearKey(player) : ()
     if isServer then
-        if data then 
-            data.key = nil 
-        end
+        PlayerInfo[player].key = nil
     else
         ContextActionService:UnbindAction(SETDOWN)
-        PlayerEvents.ExecuteOnServer:InvokeServer("ClearKey")
+        PlayerEvents.ExecuteOnServer:InvokeServer("ClearKey", LocalPlayer)
     end
 end
 
@@ -167,29 +165,28 @@ function PlayerService._UpdateLeaderstats(player : Player, value : number) : ()
 end
 
 -- Add money to player 
-function PlayerService.AddMoney(data : PlayerData) : ()
+function PlayerService.AddMoney(player : Player) : ()
     if isServer then
-        local newAmt = data.money + data.profit
-        PlayerEvents.ChangeValue:Fire(data.player, "money", newAmt)
-        PlayerService._UpdateLeaderstats(data.player, newAmt)
+        local data = PlayerInfo[player]
+        data.money = data.money + data.profit
+        PlayerService._UpdateLeaderstats(data.player, data.money)
     else
-        PlayerEvents.ExecuteOnServer:InvokeServer("AddMoney")
+        PlayerEvents.ExecuteOnServer:InvokeServer("AddMoney", player)
     end
 end
 
 -- Checks if player can purchase item, and if yes, then makes purchase
-function PlayerService.MakePurchase(cost : number, data : PlayerData?) : boolean
+function PlayerService.MakePurchase(player : Player, cost : number) : boolean
     if isServer then
-        if not data then return error('Player data does not exist') end
+        local data = PlayerInfo[player]
         if data.money >= cost then
-            local newAmt = data.money - cost
-            PlayerEvents.ChangeValue:Fire(data.player, "money", newAmt)
-            PlayerService._UpdateLeaderstats(data.player, newAmt)
+            data.money = data.money - cost
+            PlayerService._UpdateLeaderstats(data.player, data.money)
             return true
         end
         return false
     else
-        return PlayerEvents.ExecuteOnServer:InvokeServer("MakePurchase", cost)
+        return PlayerEvents.ExecuteOnServer:InvokeServer("MakePurchase", player, cost)
     end
 end
 
@@ -254,13 +251,32 @@ function PlayerService.MoveToWorld(tool : ToolInfo, position : Vector3) : ()
 end
 
 -- Toggle via client
-function PlayerService.SetBuildState(status : boolean, playerdata : PlayerData?)
+function PlayerService.SetBuildState(player : Player, status : boolean)
     if isServer then
-        if not playerdata then return end
-        PlayerEvents.ChangeValue:Fire(playerdata.player, "isBuilding", status)
+        PlayerInfo[player]["isBuilding"] = status
     else
-        PlayerEvents.ExecuteOnServer:InvokeServer("SetBuildState", status)
+        PlayerEvents.ExecuteOnServer:InvokeServer("SetBuildState", player, status)
     end
+end
+
+-- EVENTS ----------------------------------------------------------------------------
+if isServer then
+    PlayerEvents.ExecuteOnServer.OnServerInvoke = function(_player, func : string, ...)
+        return PlayerService[func](...)
+    end
+
+    -- Places object on server side
+    PlacementEvents.InvokePlacement.OnServerEvent:Connect(function(player : Player, model : Model, cf : CFrame) : ()
+        local data = PlayerInfo[player]
+        if data then
+            table.insert(data.baseObjects, model)
+            PlacementService.Place(model, cf, PlayerService.GetBasePartFromData(PlayerInfo[player]) :: Part)
+        end
+    end)
+end
+
+function PlayerService.DestroyData(player)
+    PlayerInfo[player] = nil
 end
 
 return PlayerService

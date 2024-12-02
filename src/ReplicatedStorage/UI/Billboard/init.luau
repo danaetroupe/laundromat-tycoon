@@ -37,7 +37,7 @@ return function(model : Model, image : number)
     billboardGui.Parent = model
     
     for _ = 0, 5 do
-        print('before tween')
+
         local tween = TweenService:Create(imageLabel, 
             TweenInfo.new(0.1, Enum.EasingStyle.Elastic), 
             {Rotation = 15})
@@ -54,5 +54,4 @@ return function(model : Model, image : number)
     tween:Play()
     tween.Completed:Wait()
     billboardGui:Destroy()
-    print('destroyed')
 end

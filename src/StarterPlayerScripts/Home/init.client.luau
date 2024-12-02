@@ -5,6 +5,7 @@ local LocalPlayer = Players.LocalPlayer
 local UIService = require(ReplicatedStorage.Services.UIService)
 local Default = require(ReplicatedStorage.UI.Default)
 
+local TutorialEvents = ReplicatedStorage.Events.TutorialEvents
 
 -- Initalize toggle functionaity
 function Init()
@@ -12,10 +13,13 @@ function Init()
     for _, s in script.Scripts:GetChildren() do
         scripts[s.Name] = require(s)
     end
-    local gui = UIService.createScope(Default.createButtons(scripts))
+    local buttons = Default.createButtons(scripts)
+    local gui = UIService.createScope(buttons)
+    Default.changeActive(buttons, false)
     local moneyVal : IntValue = LocalPlayer:WaitForChild("leaderstats"):WaitForChild("Money")
     local coinDisplay = Default.createCoinDisplay(moneyVal)
     coinDisplay.Parent = gui
+    return buttons
 end
 
-Init()
+TutorialEvents.ShowButtons.OnInvoke = Init
