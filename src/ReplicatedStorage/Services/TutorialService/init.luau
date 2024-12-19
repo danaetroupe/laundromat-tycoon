@@ -14,6 +14,7 @@ local PlaceObject = require(ReplicatedStorage.UI.Store.PlaceObject)
 
 local TutorialEvents = ReplicatedStorage.Events.TutorialEvents
 local PlacementEvents = ReplicatedStorage.Events.PlacementEvents
+local ObjectEvents = ReplicatedStorage.Events.ObjectEvents
 
 local LocalPlayer = Players.LocalPlayer
 
@@ -155,6 +156,73 @@ local StageInfo =  {
             return NPCService.GetPrompt(LocalPlayer).Triggered
         end
     },
+    { -- 8 ---------------------------------------------------------------------
+        Text = "Load laundry in washing machine",
+        CanClickForward = false,
+        Event = function() : RBXScriptSignal
+            return ObjectEvents.ObjectInteraction.Event
+        end
+    },
+    { -- 9 ---------------------------------------------------------------------
+        Text = "Wait for cycle to complete",
+        CanClickForward = false,
+        Event = function() : RBXScriptSignal
+            return ObjectEvents.CycleComplete.Event
+        end
+    },
+    { -- 10 ---------------------------------------------------------------------
+        Text = "Get laundry out of the machine.",
+        CanClickForward = false,
+        Event = function() : RBXScriptSignal
+            return ObjectEvents.ObjectInteraction.Event
+        end
+    },
+    { -- 11 ---------------------------------------------------------------------
+        Text = "Load laundry in dryer",
+        CanClickForward = false,
+        Event = function() : RBXScriptSignal
+            return ObjectEvents.ObjectInteraction.Event
+        end
+    },
+    { -- 12 ---------------------------------------------------------------------
+        Text = "Wait for cycle to complete",
+        CanClickForward = false,
+        Event = function() : RBXScriptSignal
+            return ObjectEvents.CycleComplete.Event
+        end
+    },
+    { -- 13 ---------------------------------------------------------------------
+        Text = "Get laundry out of the machine.",
+        CanClickForward = false,
+        Event = function() : RBXScriptSignal
+            return ObjectEvents.ObjectInteraction.Event
+        end
+    },
+    { -- 14 ---------------------------------------------------------------------
+        Text = "Place laundry on folding table",
+        CanClickForward = false,
+        Event = function() : RBXScriptSignal
+            return ObjectEvents.ObjectInteraction.Event
+        end
+    },
+    { -- 15 ---------------------------------------------------------------------
+        Text = "Fold laundry by holding down.",
+        CanClickForward = false,
+        Event = function() : RBXScriptSignal
+            return ObjectEvents.ObjectInteraction.Event
+        end
+    },
+    { -- 16 ---------------------------------------------------------------------
+        Text = "Give laundry back to the customer.",
+        CanClickForward = false,
+        Event = function() : RBXScriptSignal
+            return NPCService.GetPickup(LocalPlayer).Triggered
+        end
+    },
+    { -- 17 ---------------------------------------------------------------------
+        Text = "Thank you for completing the tutorial. That's all you need to know for now. Have fun!",
+        CanClickForward = true,
+    }
 }
 
 function TutorialService.Start()

@@ -4,7 +4,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TouchInputService = game:GetService("TouchInputService")
 
 -- Modules
-local PlayerService = require(ReplicatedStorage.Services.PlayerService)
 local ToolService = require(ReplicatedStorage.Services.ToolService)
 local UIService = require(ReplicatedStorage.Services.UIService)
 local PlacementService = require(ReplicatedStorage.Util.PlacementService)
@@ -17,6 +16,7 @@ local ToolData = require(ReplicatedStorage.Data.ToolData)
 local Messages = require(ReplicatedStorage.UI.Messages)
 
 -- Events
+local ObjectEvents = ReplicatedStorage.Events.ObjectEvents
 
 -- Types
 type Object = ObjectData.Object
@@ -46,6 +46,7 @@ local function timer(object: Interactable): ()
 		object.state = "Complete"
 		object.prompt.Enabled = true
 	end
+	ObjectEvents.CycleComplete:Fire(object)
 end
 
 -- Create display if machine has display
@@ -114,6 +115,7 @@ function InteractableService.TableInteract(tableObj : Interactable) : boolean
 	-- If machine is empty, check for expectedLaundry state and load machine
 	elseif objectState == "Empty" then
 		if key and keyState == tableObj.expectedLaundryState then -- if empty and laundry dirty, start cycle
+			ObjectEvents.ObjectInteraction:Fire()
 			tableObj.state = "Complete"
 			InteractableService._PlaceOnTop(tableObj, key)
 			if tableObj.prompt then
@@ -131,6 +133,7 @@ function InteractableService.TableInteract(tableObj : Interactable) : boolean
 	-- If complete, make sure no key exists
 	elseif objectState == "Complete" then
 		if not key then
+			ObjectEvents.ObjectInteraction:Fire()
 			if not tableObj.tool then return false end
 			if tableObj.tool and tableObj.tool.model and tableObj.tool.model.PrimaryPart then
 				tableObj.tool.model.PrimaryPart.Anchored = false
@@ -165,7 +168,7 @@ end
 function InteractableService.RunCycle(object : Interactable) : boolean
 	if object.assetName == "foldingtable" then return InteractableService.TableInteract(object) end
     -- Check for player key
-    local objectState : MachineState = object.state
+    local objectState  = object.state
     local key = PlayerService.GetKey(LocalPlayer)
     local keyState = if key then key.state else nil
     local message
@@ -176,6 +179,7 @@ function InteractableService.RunCycle(object : Interactable) : boolean
 	-- If machine is empty, check for expectedLaundry state and load machine
 	elseif objectState == "Empty" then
 		if key and keyState == object.expectedLaundryState then -- if empty and laundry dirty, start cycle
+			ObjectEvents.ObjectInteraction:Fire()
 			object.state = "In Progress"
 			InteractableService._PlaceOnTop(object, key)
 			InteractableService.Display(object)
@@ -189,6 +193,7 @@ function InteractableService.RunCycle(object : Interactable) : boolean
 	-- If complete, make sure no key exists
 	elseif objectState == "Complete" then
 		if not key then
+			ObjectEvents.ObjectInteraction:Fire()
 			InteractableService.ClearDisplay(object)
 			object.tool.model.PrimaryPart.Anchored = false
 			key = ToolService.EquipExistingTool(LocalPlayer, object.tool, object.nextState)
@@ -207,7 +212,6 @@ function InteractableService.RunCycle(object : Interactable) : boolean
         Messages.showMessage(message)
 		return false
     end
-
 	return true
 end
 
@@ -243,12 +247,15 @@ function InteractableService.Interact(action : string, shelf : Storage) : boolea
 	elseif action == "setdown" then
 		if key then
 			LocalPlayer.Character.Humanoid:UnequipTools()
+			if not key.model then return true end -- make sure key.model exists
 			key.model.Parent = workspace
 			for _, spot in shelf.spots do
 				if not spot.tool then
 					local cf = PlacementService.CalcPlacementCFrame(spot.part, key.model, spot.part.CFrame.Position, 0)
 					key.model:PivotTo(cf)
-					key.model.PrimaryPart.Anchored = true
+					if key.model.PrimaryPart then
+						key.model.PrimaryPart.Anchored = true
+					end
 					spot.tool = key
 					shelf.spotCount += 1
 					PlayerService.ClearKey()
@@ -275,7 +282,17 @@ function InteractableService.Interact(action : string, shelf : Storage) : boolea
 end
 
 -- Special case for shelf
-function InteractableService.CreateShelfPrompt(shelf : Storage)
+function InteractableService.CreateShelfPrompt(shelf : Storage): ()
+	if not shelf.model then 
+		return warn("Shelf model does not exist.")
+	end
+	if not shelf.addPrompt then 
+		return warn("Add prompt does not exist")
+	end
+	if not shelf.takePrompt then 
+		return warn("Take prompt does not exist")
+	end
+
 	shelf.addPrompt = Instance.new("ProximityPrompt")
 	shelf.addPrompt.ActionText = "Set Down"
 	shelf.addPrompt.Parent = shelf.model
@@ -290,7 +307,7 @@ function InteractableService.CreateShelfPrompt(shelf : Storage)
 	shelf.takePrompt.Parent = shelf.model
 	shelf.takePrompt.Enabled = false -- there's nothing to pick up
 
-	for _, item : Part in shelf.model:GetChildren() do
+	for _, item in shelf.model:GetChildren() do
 		if item:HasTag("Surface") then
 			table.insert(shelf.spots, {
 				part = item,
@@ -305,13 +322,14 @@ function InteractableService.CreateShelfPrompt(shelf : Storage)
 	shelf.addPrompt.Triggered:Connect(function(_trigger)
 		InteractableService.Interact("setdown", shelf)
 	end)
+	return
 end
 
 -- Create proximity prompt
-function InteractableService.CreatePrompt(object: Interactable)
+function InteractableService.CreatePrompt(object: Interactable | Storage)
 	-- Check if object is storage type
 	if object.name == "Shelf" then
-		InteractableService.CreateShelfPrompt(object) 
+		InteractableService.CreateShelfPrompt(object :: Storage) 
 		return 
 	end
 	local prompt = Instance.new("ProximityPrompt")
@@ -324,7 +342,7 @@ function InteractableService.CreatePrompt(object: Interactable)
 	end
 
 	prompt.Triggered:Connect(function(_trigger)
-		InteractableService.RunCycle(object)
+		InteractableService.RunCycle(object :: Interactable)
 	end)
 	object.prompt = prompt
 end

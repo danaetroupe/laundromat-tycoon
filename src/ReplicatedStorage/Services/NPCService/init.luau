@@ -67,32 +67,38 @@ end
 
 -- Spawn NPC and add to queue
 function NPCService.SpawnNPC(player : Player, line : string, npc : NPC?)
-    local endPart : Part = _Data[player]["tycoon"][line]
-	local npc2 = NPCService.SpawnNewCharacter(player, _Data[player]["tycoon"].Entry.CFrame, npc)
-	npc = npc2
-	if line == "pickup" then -- If npc picking up, change to pickup status
-		npc2.state = "pickup"
-	else
-		local leave = coroutine.create(function()
-			task.wait(60)
-			-- NPC got tired of waiting and walked out
-			if npc2.state == "dropoff" then
-				npc2.state = "leaving"
-				NPCService.WalkOut(npc2, true)
-				NPCService.UpdateLine(player, "dropoff")
-			end
-		end)
-		coroutine.resume(leave)
-	end
-	-- Add to appropriate queue
-	table.insert(_Data[player][line], npc2)
+	if isServer then
+		local endPart : Part = _Data[player]["tycoon"][line]
+		local npc2 = NPCService.SpawnNewCharacter(player, _Data[player]["tycoon"].Entry.CFrame, npc)
+		npc = npc2
+		if line == "pickup" then -- If npc picking up, change to pickup status
+			npc2.state = "pickup"
+			NPCEvents.PickupSpawned:FireClient(player, npc2)
+		else
+			NPCEvents.DropoffSpawned:FireClient(player, npc2)
+			local leave = coroutine.create(function()-- todo: this will cause issues later in the tutorial
+				task.wait(60)
+				-- NPC got tired of waiting and walked out
+				if npc2.state == "dropoff" then
+					npc2.state = "leaving"
+					NPCService.WalkOut(npc2, true)
+					NPCService.UpdateLine(player, "dropoff")
+				end
+			end)
+			coroutine.resume(leave)
+		end
+		-- Add to appropriate queue
+		table.insert(_Data[player][line], npc2)
 
-	-- Walk to line position
-	local vector = if npc2.character.PrimaryPart.CFrame.Position.X > endPart.Position.X then 1 else -1
-    local pos = endPart.Position + Vector3.new(vector, 0, 0) * 2 * (#_Data[player][line]-1)
-	NPCService.WalkCharacter(npc2, pos, endPart.Rotation)
-	if #_Data[player][line] == 1 then
-		NPCService.GivePrompt(npc2)
+		-- Walk to line position
+		local vector = if npc2.character.PrimaryPart.CFrame.Position.X > endPart.Position.X then 1 else -1
+		local pos = endPart.Position + Vector3.new(vector, 0, 0) * 2 * (#_Data[player][line]-1)
+		NPCService.WalkCharacter(npc2, pos, endPart.Rotation)
+		if #_Data[player][line] == 1 then
+			NPCService.GivePrompt(npc2)
+		end
+	else
+		NPCEvents.ExecuteOnServer:InvokeServer("SpawnNPC", player, line, npc)
 	end
 end
 
@@ -118,7 +124,6 @@ function NPCService.SpawnNewCharacter(player : Player, point : CFrameValue, data
 	data.player = player
 	data.id = if data.id then data.id else HttpService:GenerateGUID(false)
 	data.spawntime = if not data.spawntime then os.time() else data.spawntime
-	NPCEvents.NPCSpawned:FireClient(player, data)  
 	return data
 end
 
@@ -207,8 +212,11 @@ function NPCService.WalkOut(npc : NPC, destroy : boolean): ()
 		if npc.character then
 			if destroy then
 				npc.character:Destroy()
-				local time = if npc.state == "pickup" then os.time() - npc.spawn_rate else 60
-			RatingService.AddTime(npc.player, time)
+				--local time = if npc.state == "pickup" then os.time() - npc.spawn_rate else 60
+				local time = 60
+				if npc.player then
+					RatingService.AddTime(npc.player, time)
+				end
 		else
 				npc.character.Parent = ReplicatedStorage
 			end
@@ -275,11 +283,19 @@ function NPCService.GetFirstNPC(player : Player)
 	end
 end
 
+function NPCService.GetPickupNPC(player : Player)
+	if isServer then
+		return _Data[player]["pickup"][1]
+	else
+		return NPCEvents.ExecuteOnServer:InvokeServer("GetPickupNPC", Players.LocalPlayer)
+	end
+end
+
 -- Create beam attatchment pointing toward NPC
 function NPCService.CreateBeam(player : Player) : Beam?
 	local Tutorial = require(ReplicatedStorage.UI.Tutorial)
 	local first = NPCService.GetFirstNPC(player)
-	local npc : NPC = if first then first else NPCEvents.NPCSpawned.OnClientEvent:Wait()
+	local npc : NPC = if first then first else NPCEvents.DropoffSpawned.OnClientEvent:Wait()
 	local char : Model = npc.character :: Model
 	local root = char:FindFirstChild("HumanoidRootPart") :: Part
 	local attatchment = root:FindFirstChild("RootAttachment") :: Attachment
@@ -287,7 +303,13 @@ function NPCService.CreateBeam(player : Player) : Beam?
 end
 
 function NPCService.GetPrompt(player : Player) : ProximityPrompt
-	local npc : NPC = NPCService.GetFirstNPC(player) or NPCEvents.NPCSpawned.OnClientEvent:Wait()
+	local npc : NPC = NPCService.GetFirstNPC(player) or NPCEvents.DropoffSpawned.OnClientEvent:Wait()
+	local character = npc.character :: Model
+	return character:WaitForChild("ProximityPrompt")
+end
+
+function NPCService.GetPickup(player : Player) : ProximityPrompt
+	local npc : NPC = NPCService.GetPickupNPC(player) or NPCEvents.PickupSpawned.OnClientEvent:Wait()
 	local character = npc.character :: Model
 	return character:WaitForChild("ProximityPrompt")
 end

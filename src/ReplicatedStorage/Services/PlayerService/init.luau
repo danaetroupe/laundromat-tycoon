@@ -5,6 +5,8 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
+local ObjectService = require(script.Parent.ObjectService)
+local Objects = require(ReplicatedStorage.Data.ObjectData.Objects)
 local ToolService = require(ReplicatedStorage.Services.ToolService)
 local PlayerDataModule = require(ReplicatedStorage.Data.PlayerData)
 local ToolData = require(ReplicatedStorage.Data.ToolData)
@@ -87,6 +89,15 @@ function PlayerService.AssignToPlayer(player : Player, tycoon : Model) : ()
     data.tycoon = tycoon
     PlayerEvents.ActiveToggled:Fire(data.player, data.active)
 
+    -- Initalize front desk and create prompts
+    local baseparts = tycoon:FindFirstChild("BaseParts")
+    if baseparts then
+        local deskModel = baseparts:FindFirstChild("frontdesk")
+        if deskModel then
+            local desk = ObjectService.AttatchToModel("frontdesk", player, deskModel)
+            InteractableService.createse
+        end
+    end
     local folder = Instance.new("Folder") -- create folder to store temp assets
     folder.Name = player.Name
     folder.Parent = ReplicatedStorage.Temp
@@ -109,6 +120,7 @@ function PlayerService.AssignToPlayer(player : Player, tycoon : Model) : ()
     money.Value = data.money
     money.Parent = leaderstats
     PlayerInfo[player] = data
+    
 end
 
 

@@ -66,6 +66,20 @@ function ObjectService.CreateNew(name : string, player : Player?) : Object
     end 
 end
 
+function ObjectService.AttatchToModel(name : string, player : Player?, model : Model) : Object
+    if isServer then
+        local data : Object = table.clone(Objects.GetObject(name))
+        data.model = model
+        if not _Data[player] then 
+            _Data[player] = {}
+        end
+        _Data[player][data.name] = data
+        return data
+    else
+        return ObjectEvents.ExecuteOnServer:InvokeServer("CreateNew", name, LocalPlayer)
+    end 
+end
+
 function ObjectService.CreateHighlight(model : Model, color : Color3) : Highlight
     -- Delete existing highlight if exists
     local highlight = model:FindFirstChildOfClass("Highlight")

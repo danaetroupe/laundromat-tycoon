@@ -22,7 +22,11 @@
             "ClassName": "RemoteFunction"
         },
         {
-            "Name": "NPCSpawned",
+            "Name": "PickupSpawned",
+            "ClassName": "RemoteEvent"
+        },
+        {
+            "Name": "DropoffSpawned",
             "ClassName": "RemoteEvent"
         }
         

@@ -117,6 +117,7 @@ local function createNewObj()
 end
 
 local function show(cf : CFrame?)
+    if not currModel then return end
     local cframe = cf or PlacementService.CalcPlacementCFrame(basePart, currModel, Mouse.Hit.Position, rotation)
     currModel:PivotTo(cframe)
     local color = if PlacementService.IsColliding(currModel) then Color3.new(1,0,0) else Color3.new(0,1,0)
@@ -160,7 +161,7 @@ local function handleInput(name, userInputState, _input)
         -- Check if object is interactable
         if objectData and objectData.state then 
             --Create proximity prompt
-            InteractableService.CreatePrompt(objectData)
+            InteractableService.CreatePrompt(objectData :: InteractableObject)
         end
         -- Reset data/create new object
         if not isEditing.Value then

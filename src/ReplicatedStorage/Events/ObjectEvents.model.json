@@ -4,6 +4,14 @@
         {
             "Name": "ExecuteOnServer",
             "ClassName": "RemoteFunction"
+        },
+        {
+            "Name": "ObjectInteraction",
+            "ClassName": "BindableEvent"
+        },
+        {
+            "Name": "CycleComplete",
+            "ClassName": "BindableEvent"
         }
     ]
 }

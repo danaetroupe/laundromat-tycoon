@@ -20,7 +20,7 @@ export type Object = {
 }
 
 export type InteractableObject = Object&{
-    state: ObjectState,
+    state: MachineState,
     expectedLaundryState : LaundryState,
     cycleTime: number,
     nextState : LaundryState,
