@@ -7,6 +7,7 @@ local TouchInputService = game:GetService("TouchInputService")
 local ToolService = require(ReplicatedStorage.Services.ToolService)
 local UIService = require(ReplicatedStorage.Services.UIService)
 local PlacementService = require(ReplicatedStorage.Util.PlacementService)
+local PlayerService = require(ReplicatedStorage.Services.PlayerService)
 
 -- Data
 local ObjectData = require(ReplicatedStorage.Data.ObjectData)
@@ -144,6 +145,7 @@ function InteractableService.TableInteract(tableObj : Interactable) : boolean
 			if tableObj.prompt then 
 				tableObj.prompt.HoldDuration = 0 
 			end
+			assert(key, "Key does not exist")
 			return PlayerService.AssignKey(key)
 		else
 			message = "Table already has laundry. Please fold first."
@@ -195,6 +197,7 @@ function InteractableService.RunCycle(object : Interactable) : boolean
 		if not key then
 			ObjectEvents.ObjectInteraction:Fire()
 			InteractableService.ClearDisplay(object)
+			assert(object.tool and object.tool.model and object.tool.model.PrimaryPart, "Error with object tool model")
 			object.tool.model.PrimaryPart.Anchored = false
 			key = ToolService.EquipExistingTool(LocalPlayer, object.tool, object.nextState)
 			object.tool = nil
@@ -231,6 +234,7 @@ function InteractableService.Interact(action : string, shelf : Storage) : boolea
 						spot.tool.model.PrimaryPart.Anchored = false
 					end
 					key = ToolService.EquipExistingTool(LocalPlayer, spot.tool)
+					assert(key, `Error with key or key does not exist`)
 					PlayerService.AssignKey(key)
 					spot.tool = nil
 					shelf.spotCount -= 1
@@ -345,6 +349,19 @@ function InteractableService.CreatePrompt(object: Interactable | Storage)
 		InteractableService.RunCycle(object :: Interactable)
 	end)
 	object.prompt = prompt
+end
+
+-- Get route for NPCs
+function InteractableService.GetRoute(object : Interactable) : Part?
+	if object.model then
+		local route = object.model:FindFirstChild("Route")
+		if not route then
+			warn("Route does not exist for " .. object.name)
+		end
+		return route
+	end
+	warn("Trying to get route but ".. object.name.. " model does not exist. ")
+	return
 end
 
 return InteractableService

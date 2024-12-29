@@ -4,9 +4,10 @@ local Players = game:GetService("Players")
 local PlayerService = require(ReplicatedStorage.Services.PlayerService)
 
 local TAKEN = "Taken"
+local _Data = {}
 
 Players.PlayerAdded:Connect(function(player)
-    for _, tycoon in workspace.Tycoons:GetChildren() do
+    for _, tycoon in _Data["Tycoons"].GetChildren() do
         if tycoon:GetAttribute(TAKEN) == false then
             tycoon:SetAttribute(TAKEN, true)
             PlayerService.AssignToPlayer(player, tycoon)
@@ -24,8 +25,9 @@ Players.PlayerAdded:Connect(function(player)
     end
 end)
 
-local function Init() : nil -- Initalize service
-    for _, tycoon in workspace.Tycoons:GetChildren() do
+local function Init() : () -- Initalize service
+    _Data["Tycoons"] = workspace:FindFirstChild("Tycoons")
+    for _, tycoon in _Data["Tycoons"].GetChildren() do
         tycoon:SetAttribute(TAKEN, false)
     end
 end

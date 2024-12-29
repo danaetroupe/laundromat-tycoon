@@ -81,10 +81,8 @@ function PlacementService.CalcPlacementCFrame(
 	position: Vector3,
 	rotation: number
 ): CFrameValue?
-	if not model.PrimaryPart then 
-		warn(model.Name.. " does not contain a primary part.")
-		return 
-	end
+	assert(model.PrimaryPart, model.Name.. " does not contain a primary part.")
+	
 	-- use other method to get info about the surface
 	local cf, size = PlacementService._CalcBase(base)
 

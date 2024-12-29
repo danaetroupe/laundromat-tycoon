@@ -119,8 +119,11 @@ function NPCService.SpawnNewCharacter(player : Player, point : CFrameValue, data
 		humanoid:ApplyDescription(humDesc)
 	end
 	
+	assert(data, "Data does not exist.")
+	assert(data.character, "Character does not exist")
+	assert(data.character:FindFirstChild("HumanoidRootPart"), "Humanoid root part does not exist.")
 	data.character.Parent = workspace
-	data.character.HumanoidRootPart.CFrame = point -- Set to point
+	data.character:FindFirstChild("HumanoidRootPart").CFrame = point -- todo: fix this error lol
 	data.player = player
 	data.id = if data.id then data.id else HttpService:GenerateGUID(false)
 	data.spawntime = if not data.spawntime then os.time() else data.spawntime
@@ -232,7 +235,7 @@ end
 function NPCService.UpdateLine(player : Player, line : string) -- moves up line if event happens
 	if isServer then
 		local npc : NPC = table.remove(_Data[player][line], 1) :: NPC
-		npc.state = "dontdespawnpls" -- todo: figure out what i can change this to :|
+		npc.state = "leaving" 
 		if #_Data[player][line] >= 1 then -- check if queue is not empty
 			NPCService.GivePrompt(_Data[player][line][1])
 		end
