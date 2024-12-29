@@ -94,8 +94,8 @@ function PlayerService.AssignToPlayer(player : Player, tycoon : Model) : ()
     if baseparts then
         local deskModel = baseparts:FindFirstChild("frontdesk")
         if deskModel then
-            local desk = ObjectService.AttatchToModel("frontdesk", player, deskModel)
-            InteractableService.createse
+            local _desk = ObjectService.AttatchToModel("frontdesk", player, deskModel)
+            --todo: implement storage mechanisms
         end
     end
     local folder = Instance.new("Folder") -- create folder to store temp assets

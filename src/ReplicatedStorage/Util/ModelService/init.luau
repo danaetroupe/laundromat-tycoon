@@ -10,9 +10,6 @@ local ModelService = {}
 function ModelService.CreateOnServer(object : Model)
     if isServer then
         local newObj = object:Clone()
-        local folder = Instance.new("Folder")
-        folder.Parent = ReplicatedStorage
-        newObj.Parent = folder
         return newObj
     else
         return ReplicateOnServer:InvokeServer(object)
@@ -21,8 +18,8 @@ end
 
 if isServer then
     -- Handle client/server boundary
-    ReplicateOnServer.OnServerInvoke = function(player, object, targetFolder)
-        return ModelService.CreateOnServer(object, targetFolder)
+    ReplicateOnServer.OnServerInvoke = function(_player, object, targetFolder)
+        return ModelService.CreateOnServer(object)
     end
 end
 
